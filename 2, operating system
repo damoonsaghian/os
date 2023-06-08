@@ -18,10 +18,10 @@ then run this in a terminal (note that s390x and mips architectures are not supp
 ; sudo sh <path-to-this-project-directory>/install.sh
 
 in the installed system:
-press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
-press and release "alt" ("pun" in action mode) to switch between the primary app (usually Comshell) and the prior app
-press "alt+space" ("pun+space" in action mode) to switch between windows of a workspace
-press "alt+backspace" ("pun+backspace" in action mode) to close focused window
+press "alt+enter" to open app launcher menu
+press and release "alt" to switch between the primary app (usually Comshell) and the prior app
+press "alt+space" to switch between windows of a workspace
+press "alt+backspace" to close focused window
 
 use "Session Manager" app to lock the session, suspend, exit, reboot, or poweroff
 there is also a terminal emulator
