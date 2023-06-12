@@ -1,41 +1,71 @@
 set -e
 
-command -v fzy || apt-get --yes install fzy
-
-answer="$(printf "install a new system\nrepair an existing system" | fzy)"
-
-umount --recursive --quiet /mnt || true
-
-[ "$answer" = "repair an existing system" ] && {
-	echo "select the device containing the system:"
-	target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
-	mount "/dev/$target_device" /mnt
-	# mount other system directories
-	
-	# try to chroot and run:
-	# apt-get dist-upgrade
-	# if it failed, then:
-	# debootstrap --variant=minbase unstable /mnt
-	# then chroot and run:
-	# apt-get dist-upgrade
-	
-	# search for required firmwares, and install them
-	
-	echo; echo -n "the system on \"$target_device\" repaired successfully; press a key to reboot"
-	answer="$(printf "no\nyes" | fzy)"
-	[ "$answer" = yes ] || reboot
-	exit
-}
-
 arch="$(dpkg --print-architecture)"
 case "$arch" in
 s390x|mipsel|mips64el) echo "arichitecture \"$arch\" is not supported"; exit ;;
 esac
 
-echo "select a device:"
-target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
-echo "WARNING! all the data on \"$target_device\" will be erase; do you want to continue?"
-answer="$(printf "no\nyes" | fzy)"
+command -v arch-chroot 1>/dev/null || apt-get -qq install arch-install-scripts
+
+command -v fzy 1>/dev/null || apt-get -qq install fzy
+
+umount --recursive --quiet /mnt || true
+
+directory_of_this_file="$(dirname "$0")"
+
+mnt_debootstrap() {
+	command -v debootstrap 1>/dev/null || apt-get -qq install debootstrap
+	debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
+		--components=main,contrib,non-free-firmware stable /mnt
+	# "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
+}
+
+mnt_install() {
+	mount --bind "$directory_of_this_file" /mnt/mnt
+	genfstab -U /mnt >> /mnt/etc/fstab
+	arch-chroot /mnt sh /mnt/install-chroot.sh
+}
+
+answer="$(printf "install a new system\nrepair an existing system" | fzy -p "select an option: ")"
+
+[ "$answer" = "repair an existing system" ] && {
+	target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | 
+		fzy -p "select the device containing the system: " | cut -d " " -f 1)"
+	
+	target_partitions="$(lsblk --list --noheadings -o PATH "/dev/$target_device")"
+	target_partition1="$(echo "$target_partitions" | sed -n '2p')"
+	target_partition2="$(echo "$target_partitions" | sed -n '3p')"
+	
+	mount "$target_partition2" /mnt
+	if [ -d /sys/firmware/efi ]; then
+		mkdir -p /mnt/boot/efi
+		mount "$target_partition1" /mnt/boot/efi
+	else
+		case "$arch" in
+		amd64|i386) ;;
+		ppc64el) ;;
+		*) mkdir /mnt/boot; mount "$target_partition1" /mnt/boot ;;
+		esac
+	fi
+	
+	[ -d /mnt/debootstrap ] && EXTRACT_DEB_TAR_OPTIONS=--overwrite mnt_debootstrap
+	{
+		arch-chroot /mnt apt-get dist-upgrade
+		mnt_install
+	} || {
+		EXTRACT_DEB_TAR_OPTIONS=--overwrite mnt_debootstrap
+		arch-chroot /mnt apt-get dist-upgrade
+		mnt_install
+	}
+	
+	echo; echo -n "the system on \"$target_device\" repaired successfully"
+	answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
+	[ "$answer" = yes ] || reboot
+	exit
+}
+
+target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy -p "select a device: " | cut -d " " -f 1)"
+answer="$(printf "no\nyes" | fzy -p "WARNING! all the data on \"$target_device\" will be erased; continue? ")"
 [ "$answer" = yes ] || exit
 
 # create partitions
@@ -62,42 +92,38 @@ else
 		;;
 	esac
 fi
-command -v sfdisk || apt-get --yes install fdisk
+command -v sfdisk 1>/dev/null || apt-get -qq install fdisk
 sfdisk --quiet --wipe always --label $part_label "/dev/$target_device" <<__EOF__
 1M,$first_part_size,$first_part_type
 ,,linux
 __EOF__
 
+target_partitions="$(lsblk --list --noheadings -o PATH "/dev/$target_device")"
+target_partition1="$(echo "$target_partitions" | sed -n '2p')"
+target_partition2="$(echo "$target_partitions" | sed -n '3p')"
+
 # format and mount partitions
-mkfs.btrfs "/dev/${target_device}2"
-mount "/dev/${target_device}2" /mnt
+mkfs.btrfs -f --quiet "$target_partition2"
+mount "$target_partition2" /mnt
 if [ -d /sys/firmware/efi ]; then
-	mkfs.fat -F 32 "/dev/${target_device}1"
+	mkfs.fat -F 32 "$target_partition1"
 	mkdir -p /mnt/boot/efi
-	mount "/dev/${target_device}1" /mnt/boot/efi
+	mount "$target_partition1" /mnt/boot/efi
 else
 	case "$arch" in
 	amd64|i386) ;;
 	ppc64el) ;;
 	*)
-		mkfs.ext2 "/dev/${target_device}1"
+		mkfs.ext2 "$target_partition1"
 		mkdir /mnt/boot
-		mount "/dev/${target_device}1" /mnt/boot
+		mount "$target_partition1" /mnt/boot
 		;;
 	esac
 fi
 
-command -v debootstrap || apt-get --yes install debootstrap
-debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
-	--components=main,contrib,non-free-firmware stable /mnt
-# "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
+mnt_debootstrap
+mnt_install
 
-mount --bind "$(dirname "$0")" /mnt/mnt
-
-apt-get --yes install arch-install-scripts
-genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt sh /mnt/install-chroot.sh
-
-echo; echo -n "installation completed successfully; press a key to reboot"
-answer="$(printf "no\nyes" | fzy)"
+echo; echo -n "installation completed successfully"
+answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
 [ "$answer" = yes ] || reboot

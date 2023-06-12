@@ -1,4 +1,4 @@
-apt-get --yes install iwd wireless-regdb bluez rfkill passwd fzy
+apt-get -qq install iwd wireless-regdb bluez rfkill passwd fzy
 
 cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system
@@ -22,7 +22,7 @@ systemctl enable iwd.service
 
 echo '# allow rfkill for users in the netdev group
 KERNEL=="rfkill", MODE="0664", GROUP="netdev"
-' >	/etc/udev/rules.d/80-rfkill.rules
+' > /etc/udev/rules.d/80-rfkill.rules
 
 echo; echo "setting your timezone"
 system timezone

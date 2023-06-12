@@ -100,9 +100,15 @@ RouteMetric=700
 systemctl enable systemd-networkd
 apt-get --yes install systemd-resolved
 
+. /mnt/install-sudo.sh
+
+. /mnt/install-system.sh
+
+. /mnt/install-sway.sh
+
 echo; echo -n "set username: "
 read -r username
-useradd --create-home --groups netdev --shell /bin/bash "$username"
+useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username"
 while ! passwd --quiet "$username"; do
 	echo "an error occured; please try again"
 done
@@ -118,11 +124,4 @@ passwd --lock root
 # in the same group as the first user
 # during login, creates a symlink for each project directory
 
-. /mnt/install-sudo.sh
-
-. /mnt/install-system.sh
-
-. /mnt/install-sway.sh
-
-apt-get --yes install jina 2>/dev/null
-apt-get --yes install codev 2>/dev/null
+apt-get --yes install jina codev 2>/dev/null
