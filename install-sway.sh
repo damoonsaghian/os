@@ -1,4 +1,4 @@
-apt-get -qq install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
+apt-get --yes install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then

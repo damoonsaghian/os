@@ -136,7 +136,7 @@ manage_connections() {
 set_timezone() {
 	# guess the timezone, but let the user to confirm it
 	local geoip_tz= geoip_tz_continent= geoip_tz_city= tz_continent= tz_city=
-	command -v wget 1>/dev/null || apt-get -qq install wget
+	command -v wget > /dev/null 2>&1 || apt-get -qq install wget > /dev/null 2>&1 || true
 	geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
 	geoip_tz_continent="$(echo "$geoip_tz" | cut -d / -f1)"
 	geoip_tz_city="$(echo "$geoip_tz" | cut -d / -f2)"

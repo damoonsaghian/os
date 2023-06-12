@@ -5,10 +5,12 @@ case "$arch" in
 s390x|mipsel|mips64el) echo "arichitecture \"$arch\" is not supported"; exit ;;
 esac
 
-command -v debootstrap 1>/dev/null || apt-get -qq install debootstrap
-command -v arch-chroot 1>/dev/null || apt-get -qq install arch-install-scripts
-
-command -v fzy 1>/dev/null || apt-get -qq install fzy
+command -v fzy > /dev/null 2>&1 || apt-get -qq install fzy > /dev/null 2>&1 || {
+	echo "internet connection is required"
+	exit 1
+}
+command -v debootstrap > /dev/null 2>&1 || apt-get -qq install debootstrap > /dev/null 2>&1
+command -v arch-chroot > /dev/null 2>&1 || apt-get -qq install arch-install-scripts > /dev/null 2>&1
 
 umount --recursive --quiet /mnt || true
 
@@ -63,6 +65,15 @@ if [ -d /sys/firmware/efi ]; then
 	first_part_type=uefi
 	first_part_size="512M"
 	part_label=gpt
+	case "$arch" in
+	amd64) second_partition_type=4f68bce3-e8cd-4db1-96e7-fbcaf984b709 ;;
+	i386) second_partition_type=44479540-f297-41b2-9af7-d131d5f0458a ;;
+	arm64) second_partition_type=b921b045-1df0-41c3-af44-4c6f280d3fae ;;
+	armel|armhf) second_partition_type=69dad710-2ce4-4e3c-b16c-21a1d49abed3 ;;
+	ppc64el) second_partition_type=c31c45e6-3f39-412e-80fb-4809c4980599 ;;
+	riscv64) second_partition_type=72ec70a6-cf74-40e6-bd49-4bda08e8f224 ;;
+	*) echo "arichitecture \"$arch\" is not supported by sd-boot DPS"; exit 1 ;;
+	esac
 else
 	case "$arch" in
 	amd64|i386)
@@ -81,11 +92,12 @@ else
 		part_label=dos
 		;;
 	esac
+	second_partition_type=linux
 fi
-command -v sfdisk 1>/dev/null || apt-get -qq install fdisk
+command -v sfdisk > /dev/null 2>&1 || apt-get -qq install fdisk > /dev/null 2>&1
 sfdisk --quiet --wipe always --label $part_label "/dev/$target_device" <<__EOF__
 1M,$first_part_size,$first_part_type
-,,linux
+,,$second_partition_type
 __EOF__
 
 target_partitions="$(lsblk --list --noheadings -o PATH "/dev/$target_device")"
@@ -93,10 +105,10 @@ target_partition1="$(echo "$target_partitions" | sed -n '2p')"
 target_partition2="$(echo "$target_partitions" | sed -n '3p')"
 
 # format and mount partitions
-mkfs.btrfs -f --quiet "$target_partition2"
+mkfs.btrfs -f --quiet "$target_partition2" > /dev/null 2>&1
 mount "$target_partition2" /mnt
 if [ -d /sys/firmware/efi ]; then
-	mkfs.fat -F 32 "$target_partition1"
+	mkfs.fat -F 32 "$target_partition1" > /dev/null 2>&1
 	mkdir -p /mnt/boot/efi
 	mount "$target_partition1" /mnt/boot/efi
 else
@@ -104,7 +116,7 @@ else
 	amd64|i386) ;;
 	ppc64el) ;;
 	*)
-		mkfs.ext2 "$target_partition1"
+		mkfs.ext2 "$target_partition1" > /dev/null 2>&1
 		mkdir /mnt/boot
 		mount "$target_partition1" /mnt/boot
 		;;

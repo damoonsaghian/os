@@ -1,4 +1,4 @@
-apt-get -qq install iwd wireless-regdb bluez rfkill passwd fzy
+apt-get --yes install iwd wireless-regdb bluez rfkill passwd fzy
 
 cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system

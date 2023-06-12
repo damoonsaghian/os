@@ -1,4 +1,4 @@
-apt-get -qq install kbd whois pkexec
+apt-get --yes install kbd whois pkexec
 # kbd is needed for its openvt
 # whois is needed for its mkpasswd
 
