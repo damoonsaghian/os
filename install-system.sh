@@ -1,4 +1,4 @@
-apt-get --yes install iwd wireless-regdb bluez rfkill passwd fzy
+apt-get -qq install iwd wireless-regdb bluez rfkill passwd fzy
 
 cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system
@@ -60,7 +60,7 @@ autoupdate() {
 	metered_connection && exit 0
 	apt-get update
 	export DEBIAN_FRONTEND=noninteractive
-	apt-get --yes --quiet -o Dpkg::Options::=--force-confnew dist-upgrade
+	apt-get -qq -o Dpkg::Options::=--force-confnew dist-upgrade
 }
 
 case "$mode" in
@@ -70,8 +70,8 @@ case "$mode" in
 	remove) apt-get purge -- "$package_name" ;;
 esac
 
-apt-get --yes --purge autoremove
-apt-get --yes autoclean
+apt-get -qq --purge autoremove
+apt-get -qq autoclean
 ' > /usr/local/bin/system-packages
 
 mkdir -p /usr/local/lib/systemd/system

@@ -8,34 +8,34 @@ APT::AutoRemove::SuggestsImportant "false";
 ' > /etc/apt/apt.conf.d/99_norecommends
 
 case "$arch" in
-ppc64el) apt-get --yes install "linux-image-powerpc64le" ;;
+ppc64el) apt-get -qq install "linux-image-powerpc64le" ;;
 i386)
 	if grep -q '^flags.*\blm\b' /proc/cpuinfo; then
-		apt-get --yes install "linux-image-686-pae"
+		apt-get -qq install "linux-image-686-pae"
 	elif grep -q '^flags.*\bpae\b' /proc/cpuinfo; then
-		apt-get --yes install "linux-image-686-pae"
+		apt-get -qq install "linux-image-686-pae"
 	else
-		apt-get --yes install "linux-image-686"
+		apt-get -qq install "linux-image-686"
 	fi ;;
 armhf)
 	if grep -q '^Features.*\blpae\b' /proc/cpuinfo; then
-		apt-get --yes install "linux-image-armmp-lpae"
+		apt-get -qq install "linux-image-armmp-lpae"
 	else
-		apt-get --yes install "linux-image-armmp"
+		apt-get -qq install "linux-image-armmp"
 	fi ;;
-armel) apt-get --yes install "linux-image-marvell" ;;
-*) apt-get --yes install "linux-image-$arch" ;;
+armel) apt-get -qq install "linux-image-marvell" ;;
+*) apt-get -qq install "linux-image-$arch" ;;
 esac
 
 if [ -d /sys/firmware/efi ]; then
 	echo "root=UUID=$(findmnt -n -o UUID /) ro quiet" > /etc/kernel/cmdline
-	apt-get --yes install systemd-boot
+	apt-get -qq install systemd-boot
 	mkdir -p /boot/efi/loader
 	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
 else
 	case "$arch" in
-	amd64|i386) apt-get --yes install grub-pc ;;
-	ppc64el) apt-get --yes install grub-ieee1275 ;;
+	amd64|i386) apt-get -qq install grub-pc ;;
+	ppc64el) apt-get -qq install grub-ieee1275 ;;
 	esac
 	# lock Grub for security
 	# recovery mode in Debian requires root password
@@ -58,7 +58,7 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' > \
 	/etc/udev/rules.d/80-install-firmware.rules
 
-apt-get --yes install pipewire-audio dbus-user-session systemd-timesyncd
+apt-get -qq install pipewire-audio dbus-user-session systemd-timesyncd
 
 echo -n '[Match]
 Name=en*
@@ -99,7 +99,7 @@ RouteMetric=700
 # https://wiki.archlinux.org/title/Mobile_broadband_modem
 # https://github.com/systemd/systemd/issues/20370
 systemctl enable systemd-networkd
-apt-get --yes install systemd-resolved
+apt-get -qq install systemd-resolved
 
 . /mnt/install-sudo.sh
 
@@ -125,4 +125,4 @@ passwd --lock root
 # in the same group as the first user
 # during login, creates a symlink for each project directory
 
-apt-get --yes install jina codev 2>/dev/null || true
+apt-get -qq install jina codev 2>/dev/null || true

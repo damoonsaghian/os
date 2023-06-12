@@ -1,4 +1,4 @@
-apt-get --yes install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
+apt-get -qq install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -64,7 +64,7 @@ time {
 # , and easily distinguishable characters
 # , while allowing each character to take up the space that it needs
 # "https://input.djr.com/"
-apt-get --yes install fonts-noto-core fonts-hack
+apt-get -qq install fonts-noto-core fonts-hack
 mkdir -p /etc/fonts
 echo -n '<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">

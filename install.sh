@@ -5,12 +5,12 @@ case "$arch" in
 s390x|mipsel|mips64el) echo "arichitecture \"$arch\" is not supported"; exit ;;
 esac
 
-command -v fzy > /dev/null 2>&1 || apt-get -qq install fzy > /dev/null 2>&1 || {
+command -v fzy > /dev/null 2>&1 || apt-get -qq install fzy || {
 	echo "internet connection is required"
 	exit 1
 }
-command -v debootstrap > /dev/null 2>&1 || apt-get -qq install debootstrap > /dev/null 2>&1
-command -v arch-chroot > /dev/null 2>&1 || apt-get -qq install arch-install-scripts > /dev/null 2>&1
+command -v debootstrap > /dev/null 2>&1 || apt-get -qq install debootstrap
+command -v arch-chroot > /dev/null 2>&1 || apt-get -qq install arch-install-scripts
 
 umount --recursive --quiet /mnt || true
 
@@ -95,7 +95,7 @@ ppc64el) second_partition_type=c31c45e6-3f39-412e-80fb-4809c4980599 ;;
 riscv64) second_partition_type=72ec70a6-cf74-40e6-bd49-4bda08e8f224 ;;
 esac
 
-command -v sfdisk > /dev/null 2>&1 || apt-get -qq install fdisk > /dev/null 2>&1
+command -v sfdisk > /dev/null 2>&1 || apt-get -qq install fdisk
 sfdisk --quiet --wipe always --label $part_label "/dev/$target_device" <<__EOF__
 1M,$first_part_size,$first_part_type
 ,,$second_partition_type
