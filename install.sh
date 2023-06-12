@@ -5,6 +5,7 @@ case "$arch" in
 s390x|mipsel|mips64el) echo "arichitecture \"$arch\" is not supported"; exit ;;
 esac
 
+command -v debootstrap 1>/dev/null || apt-get -qq install debootstrap
 command -v arch-chroot 1>/dev/null || apt-get -qq install arch-install-scripts
 
 command -v fzy 1>/dev/null || apt-get -qq install fzy
@@ -12,19 +13,6 @@ command -v fzy 1>/dev/null || apt-get -qq install fzy
 umount --recursive --quiet /mnt || true
 
 directory_of_this_file="$(dirname "$0")"
-
-mnt_debootstrap() {
-	command -v debootstrap 1>/dev/null || apt-get -qq install debootstrap
-	debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
-		--components=main,contrib,non-free-firmware stable /mnt
-	# "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
-}
-
-mnt_install() {
-	mount --bind "$directory_of_this_file" /mnt/mnt
-	genfstab -U /mnt >> /mnt/etc/fstab
-	arch-chroot /mnt sh /mnt/install-chroot.sh
-}
 
 answer="$(printf "install a new system\nrepair an existing system" | fzy -p "select an option: ")"
 
@@ -48,15 +36,17 @@ answer="$(printf "install a new system\nrepair an existing system" | fzy -p "sel
 		esac
 	fi
 	
-	[ -d /mnt/debootstrap ] && EXTRACT_DEB_TAR_OPTIONS=--overwrite mnt_debootstrap
-	{
-		arch-chroot /mnt apt-get dist-upgrade
-		mnt_install
-	} || {
-		EXTRACT_DEB_TAR_OPTIONS=--overwrite mnt_debootstrap
-		arch-chroot /mnt apt-get dist-upgrade
-		mnt_install
+	arch-chroot /mnt apt-get dist-upgrade || {
+		backup_dir_path="/mnt/backup$(date '+%s')"
+		mkdir "$backup_dir_path"
+		mv /mnt/* "$backup_dir_path/"
+		debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
+			--components=main,contrib,non-free-firmware stable /mnt
 	}
+	
+	mount --bind "$directory_of_this_file" /mnt/mnt
+	genfstab -U /mnt >> /mnt/etc/fstab
+	arch-chroot /mnt sh /mnt/install-chroot.sh
 	
 	echo; echo -n "the system on \"$target_device\" repaired successfully"
 	answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
@@ -121,8 +111,13 @@ else
 	esac
 fi
 
-mnt_debootstrap
-mnt_install
+debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
+	--components=main,contrib,non-free-firmware stable /mnt
+# "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
+
+mount --bind "$directory_of_this_file" /mnt/mnt
+genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt sh /mnt/install-chroot.sh
 
 echo; echo -n "installation completed successfully"
 answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
