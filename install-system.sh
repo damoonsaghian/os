@@ -19,6 +19,7 @@ echo -n 'polkit.addRule(function(action, subject) {
 ' > /etc/polkit-1/rules.d/49-timezone.rules
 
 systemctl enable iwd.service
+groupadd -f netdev
 
 echo '# allow rfkill for users in the netdev group
 KERNEL=="rfkill", MODE="0664", GROUP="netdev"
@@ -95,4 +96,4 @@ RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/automatic-update.timer
-systemctl enable autoupdate.timer
+systemctl enable automatic-update.timer

@@ -108,7 +108,7 @@ apt-get --yes install systemd-resolved
 
 echo; echo -n "set username: "
 read -r username
-useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username"
+useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
 while ! passwd --quiet "$username"; do
 	echo "an error occured; please try again"
 done
@@ -124,4 +124,4 @@ passwd --lock root
 # in the same group as the first user
 # during login, creates a symlink for each project directory
 
-apt-get --yes install jina codev 2>/dev/null
+apt-get --yes install jina codev 2>/dev/null || true

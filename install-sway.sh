@@ -136,6 +136,8 @@ fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
 ' > /usr/local/bin/session-manager
 chmod +x /usr/local/bin/session-manager
 
+mkdir -p /usr/local/share/applications
+
 echo -n '[Desktop Entry]
 Type=Application
 Name=Session Manager
@@ -160,7 +162,7 @@ StartupNotify=true
 ' > /usr/local/share/applications/terminal.desktop
 echo -n '[Desktop Entry]
 NoDisplay=true
-' > /usr/local/share/applications.foot.desktop
+' > /usr/local/share/applications/foot.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/footclient.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/foot-server.desktop
 

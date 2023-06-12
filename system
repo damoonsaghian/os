@@ -140,11 +140,9 @@ set_timezone() {
 	geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
 	geoip_tz_continent="$(echo "$geoip_tz" | cut -d / -f1)"
 	geoip_tz_city="$(echo "$geoip_tz" | cut -d / -f2)"
-	echo "select a continent:"
-	tz_continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
-	echo "select a city:"
-	tz_city="$(ls -1 /usr/share/zoneinfo/"$tz_continent"/* | cut -d / -f6 | fzy -q "$geoip_tz_city")"
-	timedatectl set-timezone "${tz_continent}/${tz_city}"
+	tz_continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -p "select a continent: " -q "$geoip_tz_continent")"
+	tz_city="$(ls -1 /usr/share/zoneinfo/"$tz_continent"/* | cut -d / -f6 | fzy -p "select a city: " -q "$geoip_tz_city")"
+	ln -sf "/usr/share/zoneinfo/${tz_continent}/${tz_city}" /etc/localtime
 }
 
 manage_packages() {

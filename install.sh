@@ -50,7 +50,7 @@ answer="$(printf "install a new system\nrepair an existing system" | fzy -p "sel
 	
 	echo; echo -n "the system on \"$target_device\" repaired successfully"
 	answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
-	[ "$answer" = yes ] || reboot
+	[ "$answer" = yes ] && systemctl reboot
 	exit
 }
 
@@ -111,7 +111,7 @@ else
 	esac
 fi
 
-debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
+debootstrap --variant=minbase --include="init,btrfs-progs,udev,netbase,ca-certificates,usr-is-merged" \
 	--components=main,contrib,non-free-firmware stable /mnt
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
@@ -121,4 +121,4 @@ arch-chroot /mnt sh /mnt/install-chroot.sh
 
 echo; echo -n "installation completed successfully"
 answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
-[ "$answer" = yes ] || reboot
+[ "$answer" = yes ] && systemctl reboot
