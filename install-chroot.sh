@@ -28,9 +28,8 @@ armel) apt-get --yes install "linux-image-marvell" ;;
 esac
 
 if [ -d /sys/firmware/efi ]; then
+	echo "root=UUID=$(findmnt -n -o UUID /) ro quiet" > /etc/kernel/cmdline
 	apt-get --yes install systemd-boot
-	# the automatically generated options are for the running system; so they must be removed
-	sed --in-place "/^options/d" /boot/efi/loader/entries/*.conf
 	mkdir -p /boot/efi/loader
 	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
 else
