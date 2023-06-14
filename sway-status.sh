@@ -36,7 +36,7 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	
 	time=$(date +%s)
 	interval=$(( time - last_time ))
-	[ $interval -gt 0 ] || {
+	[ $interval = 0 ] && {
 		echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$time_i3s"
 		continue
 	}
