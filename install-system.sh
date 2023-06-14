@@ -8,6 +8,25 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
+systemctl enable iwd.service
+groupadd -f netdev
+
+echo '# allow rfkill for users in the netdev group
+KERNEL=="rfkill", MODE="0664", GROUP="netdev"
+' > /etc/udev/rules.d/80-rfkill.rules
+
+echo; echo "setting timezone"
+# guess the timezone, but let the user to confirm it
+command -v wget > /dev/null 2>&1 || apt-get -qq install wget > /dev/null 2>&1 || true
+geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+geoip_tz_continent="$(echo "$geoip_tz" | cut -d / -f1)"
+geoip_tz_city="$(echo "$geoip_tz" | cut -d / -f2)"
+tz_continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 |
+	fzy -p "select a continent: " -q "$geoip_tz_continent")"
+tz_city="$(ls -1 /usr/share/zoneinfo/"$tz_continent"/* | cut -d / -f6 |
+	fzy -p "select a city: " -q "$geoip_tz_city")"
+ln -sf "/usr/share/zoneinfo/${tz_continent}/${tz_city}" /etc/localtime
+
 echo -n 'polkit.addRule(function(action, subject) {
 	if (
 		action.id == "org.freedesktop.timedate1.set-timezone" &&
@@ -18,15 +37,23 @@ echo -n 'polkit.addRule(function(action, subject) {
 });
 ' > /etc/polkit-1/rules.d/49-timezone.rules
 
-systemctl enable iwd.service
-groupadd -f netdev
+echo; echo -n "set username: "
+read -r username
+useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
+while ! passwd --quiet "$username"; do
+	echo "an error occured; please try again"
+done
+echo; echo "set sudo password"
+while ! passwd --quiet; do
+	echo "an error occured; please try again"
+done
+# lock root account
+passwd --lock root
 
-echo '# allow rfkill for users in the netdev group
-KERNEL=="rfkill", MODE="0664", GROUP="netdev"
-' > /etc/udev/rules.d/80-rfkill.rules
-
-echo; echo "setting your timezone"
-system timezone
+# guest user:
+# read'only access to projects
+# in the same group as the first user
+# during login, creates a symlink for each project directory
 
 # let any user to run "pkexec apt-get update"
 echo -n '<?xml version="1.0" encoding="UTF-8"?>

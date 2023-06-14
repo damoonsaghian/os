@@ -58,6 +58,8 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' > \
 	/etc/udev/rules.d/80-install-firmware.rules
 
+echo 'LANG=C.UTF-8' > /etc/locale.conf
+
 apt-get -qq install pipewire-audio dbus-user-session systemd-timesyncd
 
 echo -n '[Match]
@@ -107,22 +109,23 @@ apt-get -qq install systemd-resolved
 
 . /mnt/install-sway.sh
 
-echo; echo -n "set username: "
-read -r username
-useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
-while ! passwd --quiet "$username"; do
-	echo "an error occured; please try again"
-done
-echo; echo "set sudo password"
-while ! passwd --quiet; do
-	echo "an error occured; please try again"
-done
-# lock root account
-passwd --lock root
-
-# guest user:
-# read'only access to projects
-# in the same group as the first user
-# during login, creates a symlink for each project directory
+# allow udisks2 to mount all devices except when it's an EFI partition
+echo -n 'polkit.addRule(function(action, subject) {
+	function isEfiPartition(devicePath) {
+		var partitionType = polkit.spawn("lsblk --noheadings -o PARTTYPENAME " + devicePath);
+		if (partitionType === "EFI System") return true;
+	};
+	if (subject.local && subject.active && (
+		action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+		action.id == "org.freedesktop.udisks2.filesystem-mount-system"
+	)) {
+		if (!isEfiPartition(action.lookup("device")) {
+			return polkit.Result.YES;
+		} else {
+			return polkit.Result.NO;
+		}
+	}
+});
+' > /etc/polkit-1/rules.d/49-udisks.rules
 
 apt-get -qq install jina codev 2>/dev/null || true
