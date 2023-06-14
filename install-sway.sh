@@ -94,11 +94,11 @@ echo -n '<?xml version="1.0"?>
 #= fuzzel
 echo -n 'font=sans
 terminal=foot
-launch-prefix=sh /usr/local/share/fuzzel-launch-app.sh
+launch-prefix=/usr/local/bin/fuzzel-launch-app
 [colors]
 background=222222dd
-text=ffffffff
-match=ffffffff
+text=eeeeeeff
+match=eeeeeeff
 selection=4285F4dd
 selection-text=ffffffff
 selection-match=ffffffff
@@ -107,18 +107,22 @@ border=222222ff
 cancel=Escape Control+q
 ' > /usr/local/share/fuzzel.ini
 
-echo -n 'swaymsg workspace "$1"
+echo -n '#!/bin/sh
+app_name="$(basename "$1")"
+swaymsg workspace "$app_name"
 swaymsg mark --add FOCUSED
-if swaymsg "[con_mark=\"$1\"] focus"; then
+if swaymsg "[con_mark=\"$app_name\"] focus"; then
 	swaymsg "[workspace=__focused__ con_mark=FOCUSED] focus; unmark FOCUSED"
 else
 	swaymsg "unmark FOCUSED; \
 		[workspace=__focused__] move workspace TMP; \
-		workspace \"$1\"; \
-		exec \"$1\"; \
+		workspace \"$app_name\"; \
+		exec \"$@\"; \
+		mark \"$app_name\"; \
 		[workspace=TMP] move workspace current"
 fi
-' > /usr/local/share/fuzzel-launch-app.sh
+' > /usr/local/bin/fuzzel-launch-app
+chmod +x /usr/local/bin/fuzzel-launch-app
 
 #= session manager
 echo -n '#!/bin/sh
@@ -129,8 +133,8 @@ fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
 		lock) loginctl lock-session ;;
 		suspend) systemctl suspend ;;
 		exit) swaymsg exit ;;
-		reboot) reboot ;;
-		poweroff) poweroff ;;
+		reboot) systemctl reboot ;;
+		poweroff) systemctl poweroff ;;
 	esac
 }
 ' > /usr/local/bin/session-manager
@@ -166,7 +170,7 @@ NoDisplay=true
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/footclient.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/foot-server.desktop
 
-echo -n 'font=monospace:size=10.5
+echo -n 'font=monospace:size=10
 [scrollback]
 indicator-position=none
 [cursor]
@@ -189,7 +193,7 @@ extend-to-next-whitespace = Shift+space
 \x03 = Escape
 [colors]
 background=222222
-foreground=ffffff
+foreground=eeeeee
 regular0=403E41
 regular1=FF6188
 regular2=A9DC76

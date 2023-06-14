@@ -28,8 +28,8 @@ chmod +x /usr/local/bin/sudo-chkpasswd
 
 echo -n '#!pkexec /bin/sh
 set -e
-# switch to the first available virtual terminal and ask for root password,
-#   and if successful, run the given command
+# switch to the first available virtual terminal and ask for root password
+# and if successful, run the given command
 if openvt -sw -- /usr/local/bin/sudo-chkpasswd "$@"; then
 	$@
 else
@@ -42,7 +42,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
 	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-	<action id="codev.sudo.sudo">
+	<action id="org.local.pkexec.sudo">
 		<description>sudo</description>
 		<message>sudo</message>
 		<defaults><allow_active>yes</allow_active></defaults>
@@ -50,4 +50,4 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 		<annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sudo</annotate>
 	</action>
 </policyconfig>
-' > /usr/share/polkit-1/actions/codev.sudo.policy
+' > /usr/share/polkit-1/actions/org.local.pkexec.sudo.policy

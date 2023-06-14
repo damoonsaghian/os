@@ -3,11 +3,6 @@ apt-get -qq install iwd wireless-regdb bluez rfkill passwd fzy
 cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system
 
-echo -n 'unset HISTFILE
-export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-echo "enter \"system\" to configure system settings"
-' > /etc/profile.d/shell-prompt.sh
-
 systemctl enable iwd.service
 groupadd -f netdev
 
@@ -40,6 +35,10 @@ echo -n 'polkit.addRule(function(action, subject) {
 echo; echo -n "set username: "
 read -r username
 useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
+echo -n '
+export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
+echo "enter \"system\" to configure system settings"
+' >> "/home/$username/.bashrc"
 while ! passwd --quiet "$username"; do
 	echo "an error occured; please try again"
 done
@@ -60,7 +59,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
 	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-	<action id="codev.pkexec.apt.update">
+	<action id="org.local.pkexec.apt-update">
 		<description>let any user to run "pkexec apt-get update"</description>
 		<message>let any user to run "pkexec apt-get update"</message>
 		<defaults><allow_active>yes</allow_active></defaults>
@@ -68,7 +67,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 		<annotate key="org.freedesktop.policykit.exec.argv1">update</annotate>
 	</action>
 </policyconfig>
-' > /usr/share/polkit-1/actions/codev.pkexec.apt.policy
+' > /usr/share/polkit-1/actions/org.local.pkexec.apt-update.policy
 
 # https://www.freedesktop.org/wiki/Software/systemd/inhibit/
 echo -n '#!/bin/sh
