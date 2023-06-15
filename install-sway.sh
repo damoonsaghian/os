@@ -107,7 +107,8 @@ border=222222ff
 cancel=Escape Control+q
 ' > /usr/local/share/fuzzel.ini
 
-echo -n '#!/bin/sh
+cat <<'__EOF__' > /usr/local/bin/fuzzel-launch-app
+#!/bin/sh
 app_name="$(basename "$1")"
 swaymsg workspace "$app_name"
 swaymsg mark --add FOCUSED
@@ -121,11 +122,12 @@ else
 		mark \"$app_name\"; \
 		[workspace=TMP] move workspace current"
 fi
-' > /usr/local/bin/fuzzel-launch-app
+__EOF__
 chmod +x /usr/local/bin/fuzzel-launch-app
 
 #= session manager
-echo -n '#!/bin/sh
+cat <<'__EOF__' > /usr/local/bin/session-manager
+#!/bin/sh
 printf "lock\nsuspend\nexit\nreboot\npoweroff" |
 fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
 	read answer
@@ -137,7 +139,7 @@ fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
 		poweroff) systemctl poweroff ;;
 	esac
 }
-' > /usr/local/bin/session-manager
+__EOF__
 chmod +x /usr/local/bin/session-manager
 
 mkdir -p /usr/local/share/applications
@@ -165,12 +167,15 @@ Exec=footclient
 StartupNotify=true
 ' > /usr/local/share/applications/terminal.desktop
 echo -n '[Desktop Entry]
+Name=Foot
+Exec=foot
 NoDisplay=true
 ' > /usr/local/share/applications/foot.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/footclient.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/foot-server.desktop
 
-echo -n 'font=monospace:size=10
+cat <<'__EOF__' > /usr/local/share/foot.ini
+font=monospace:size=10
 [scrollback]
 indicator-position=none
 [cursor]
@@ -211,8 +216,8 @@ bright5=AB9DF2
 bright6=78DCE8
 bright7=FCFCFA
 selection-background=555555
-selection-foreground=eeeeee
-' > /usr/local/share/foot.ini
+selection-foreground=dddddd
+__EOF__
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <svg height="128px" viewBox="0 0 128 128" width="128px">

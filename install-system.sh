@@ -35,10 +35,12 @@ echo -n 'polkit.addRule(function(action, subject) {
 echo; echo -n "set username: "
 read -r username
 useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
-echo -n '
+echo >> "/home/$username/.bashrc"
+cat <<'__EOF__' >> "/home/$username/.bashrc"
 export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
-' >> "/home/$username/.bashrc"
+__EOF__
+
 while ! passwd --quiet "$username"; do
 	echo "an error occured; please try again"
 done
@@ -70,7 +72,8 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.apt-update.policy
 
 # https://www.freedesktop.org/wiki/Software/systemd/inhibit/
-echo -n '#!/bin/sh
+cat <<'__EOF__' > /usr/local/bin/system-packages
+#!/bin/sh
 mode="$1" package_name="$2"
 
 autoupdate() {
@@ -98,7 +101,7 @@ esac
 
 apt-get -qq --purge autoremove
 apt-get -qq autoclean
-' > /usr/local/bin/system-packages
+__EOF__
 
 mkdir -p /usr/local/lib/systemd/system
 echo -n '[Unit]

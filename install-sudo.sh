@@ -14,7 +14,8 @@ case "$hash_method" in
 	*) echo "error: password hash type is unsupported"; exit 1 ;;
 esac
 salt="$(echo "$root_passwd_hashed" | cut -d '$' -f3)"
-printf "enter root password: "
+echo "$@"
+printf "to run above command, enter root password: "
 IFS= read -rs entered_passwd
 entered_passwd_hashed="$(MKPASSWD_OPTIONS="--method='$hash_method' '$entered_passwd' '$salt'" mkpasswd)"
 if [ "$entered_passwd_hashed" = "$root_passwd_hashed" ]; then
