@@ -1,4 +1,5 @@
-apt-get -qq install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
+apt-get -qq install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland \
+	fuzzel hicolor-icon-theme foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -117,8 +118,8 @@ if swaymsg "[con_mark=\"$app_name\"] focus"; then
 else
 	swaymsg "unmark FOCUSED; \
 		[workspace=__focused__] move workspace TMP; \
-		workspace \"$app_name\"; \
-		exec \"$@\"; \
+		#workspace \"$app_name\"; \
+		exec \"$1\"; \
 		mark \"$app_name\"; \
 		[workspace=TMP] move workspace current"
 fi

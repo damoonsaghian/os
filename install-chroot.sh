@@ -119,8 +119,8 @@ echo -n 'polkit.addRule(function(action, subject) {
 		if (partitionType === "EFI System") return true;
 	};
 	if (subject.local && subject.active && (
-		action.id == "org.freedesktop.udisks2.filesystem-mount" ||
-		action.id == "org.freedesktop.udisks2.filesystem-mount-system"
+		action.id === "org.freedesktop.udisks2.filesystem-mount" ||
+		action.id === "org.freedesktop.udisks2.filesystem-mount-system"
 	)) {
 		if (!isEfiPartition(action.lookup("device")) {
 			return polkit.Result.YES;
