@@ -6,17 +6,17 @@ manage_wifi() {
 	
 	if [ "$mode" = connect ]; then
 		echo 'select a device:'
-		device="$(iwctl device list | fzy | { read -r first _; echo "$first"; })"
+		device="$(iwctl device list | tail --line=+5 | fzy | { read -r first _; echo "$first"; })"
 		
 		iwctl station "$device" scan
 		echo 'select a network to connect:'
-		ssid="$(iwctl station "$device" get-networks | fzy | cut -c5- | cut -d ' ' -f1)"
+		ssid="$(iwctl station "$device" get-networks | tail --line=+5 | fzy | { read -r first _; echo "$first"; })"
 		iwctl station "$device" connect "$ssid"
 	fi
 	
 	if [ "$mode" = remove ]; then
 		echo 'select a network to remove:'
-		ssid="$(iwctl known-networks list | fzy | cut -c5- | cut -d ' ' -f1)"
+		ssid="$(iwctl known-networks list | tail --line=+5 | fzy | { read -r first _; echo "$first"; })"
 		
 		echo "remove \"$ssid\"?"
 		answer="$(printf "no\nyes" | fzy)"

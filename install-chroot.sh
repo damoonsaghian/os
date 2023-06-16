@@ -51,6 +51,9 @@ fi
 # https://salsa.debian.org/debian/isenkram
 # https://salsa.debian.org/installer-team/hw-detect
 #
+# for now just install all firmwares
+apt-get -qq install live-task-non-free-firmware-pc
+#
 # this script installs required firmwares when a new hardware is added
 echo -n '#!/bin/sh
 ' > /usr/local/bin/install-firmware
@@ -58,7 +61,7 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' > \
 	/etc/udev/rules.d/80-install-firmware.rules
 
-echo 'LANG=C.UTF-8' > /etc/locale.conf
+echo 'LANG=C.UTF-8' > /etc/default/locale
 
 apt-get -qq install pipewire-audio dbus-user-session systemd-timesyncd
 
