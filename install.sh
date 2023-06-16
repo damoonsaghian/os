@@ -45,9 +45,9 @@ answer="$(printf "install a new system\nrepair an existing system" | fzy -p "sel
 		debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
 			--components=main,contrib,non-free-firmware stable /mnt
 	}
-	
+
+	genfstab -U /mnt > /mnt/etc/fstab
 	mount --bind "$directory_of_this_file" /mnt/mnt
-	genfstab -U /mnt >> /mnt/etc/fstab
 	arch-chroot /mnt sh /mnt/install-chroot.sh
 	
 	echo; echo -n "the system on \"$target_device\" repaired successfully"
@@ -128,8 +128,8 @@ debootstrap --variant=minbase --include="init,btrfs-progs,udev,netbase,ca-certif
 	--components=main,contrib,non-free-firmware stable /mnt
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
+genfstab -U /mnt > /mnt/etc/fstab
 mount --bind "$directory_of_this_file" /mnt/mnt
-genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt sh /mnt/install-chroot.sh
 
 echo; echo -n "installation completed successfully"
