@@ -159,12 +159,16 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </svg>
 ' > /usr/local/share/icons/hicolor/scalable/apps/session-manager.svg
 
-#= foot
+#= terminal
+echo -n '#!/bin/sh
+footclient --no-wait || foot
+' > /usr/local/bin/terminal
+chmod +x /usr/local/bin/terminal
 echo -n '[Desktop Entry]
 Type=Application
 Name=Terminal
 Icon=terminal
-Exec=footclient
+Exec=/usr/local/bin/terminal
 StartupNotify=true
 ' > /usr/local/share/applications/terminal.desktop
 echo -n '[Desktop Entry]
