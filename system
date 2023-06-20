@@ -3,20 +3,25 @@ set -e
 
 manage_wifi() {
 	local mode="$(printf "connect\nremove" | fzy)" device= ssid= answer=
+	# filtered fzy
+	local ffzy=""
 	
 	if [ "$mode" = connect ]; then
 		echo 'select a device:'
-		device="$(iwctl device list | tail --line=+5 | fzy | { read -r first _; echo "$first"; })"
+		device="$(iwctl device list |
+			tail --line=+5 | cut -c 7- | fzy | { read -r first _; echo "$first"; })"
 		
 		iwctl station "$device" scan
 		echo 'select a network to connect:'
-		ssid="$(iwctl station "$device" get-networks | tail --line=+5 | fzy | { read -r first _; echo "$first"; })"
+		ssid="$(iwctl station "$device" get-networks |
+			tail --line=+5 | cut -c 7- | fzy | { read -r first _; echo "$first"; })"
 		iwctl station "$device" connect "$ssid"
 	fi
 	
 	if [ "$mode" = remove ]; then
 		echo 'select a network to remove:'
-		ssid="$(iwctl known-networks list | tail --line=+5 | fzy | { read -r first _; echo "$first"; })"
+		ssid="$(iwctl known-networks list |
+			tail --line=+5 | cut -c 7- | fzy | { read -r first _; echo "$first"; })"
 		
 		echo "remove \"$ssid\"?"
 		answer="$(printf "no\nyes" | fzy)"

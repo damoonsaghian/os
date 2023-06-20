@@ -4,7 +4,6 @@ cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system
 
 systemctl enable iwd.service
-groupadd -f netdev
 
 echo '# allow rfkill for users in the netdev group
 KERNEL=="rfkill", MODE="0664", GROUP="netdev"

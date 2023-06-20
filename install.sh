@@ -132,6 +132,9 @@ genfstab -U /mnt > /mnt/etc/fstab
 mount --bind "$directory_of_this_file" /mnt/mnt
 arch-chroot /mnt sh /mnt/install-chroot.sh
 
+# arch-chroot copies /media into the new system; it must not; so:
+rm -r /mnt/media/*
+
 echo; echo -n "installation completed successfully"
 answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
 [ "$answer" = yes ] && systemctl reboot

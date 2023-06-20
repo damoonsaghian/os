@@ -61,10 +61,6 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' > \
 	/etc/udev/rules.d/80-install-firmware.rules
 
-echo 'LANG=C.UTF-8' > /etc/default/locale
-
-apt-get -qq install pipewire-audio dbus-user-session systemd-timesyncd
-
 echo -n '[Match]
 Name=en*
 Name=eth*
@@ -106,29 +102,14 @@ RouteMetric=700
 systemctl enable systemd-networkd
 apt-get -qq install systemd-resolved
 
+apt-get -qq install systemd-timesyncd pipewire-audio
+
+echo 'LANG=C.UTF-8' > /etc/default/locale
+
 . /mnt/install-user.sh
 
 . /mnt/install-system.sh
 
 . /mnt/install-sway.sh
-
-# allow udisks2 to mount all devices except when it's an EFI partition
-echo -n 'polkit.addRule(function(action, subject) {
-	function isEfiPartition(devicePath) {
-		var partitionType = polkit.spawn("lsblk --noheadings -o PARTTYPENAME " + devicePath);
-		if (partitionType === "EFI System") return true;
-	};
-	if (subject.local && subject.active && (
-		action.id === "org.freedesktop.udisks2.filesystem-mount" ||
-		action.id === "org.freedesktop.udisks2.filesystem-mount-system"
-	)) {
-		if (!isEfiPartition(action.lookup("device")) {
-			return polkit.Result.YES;
-		} else {
-			return polkit.Result.NO;
-		}
-	}
-});
-' > /etc/polkit-1/rules.d/49-udisks.rules
 
 apt-get -qq install jina codev 2>/dev/null || true

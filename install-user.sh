@@ -1,4 +1,4 @@
-apt-get -qq install kbd whois vlock pkexec
+apt-get -qq install dbus-user-session kbd whois vlock pkexec
 # kbd is needed for its openvt
 # whois is needed for its mkpasswd
 
@@ -12,30 +12,6 @@ chmod +x /usr/local/bin/lock
 # to prevent BadUSB, when a new input device is connected lock the session
 echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="/usr/local/bin/lock"' > \
 	/etc/udev/rules.d/80-lock-new-hid.rules
-
-echo; echo -n "set username: "
-read -r username
-useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
-echo >> "/home/$username/.bashrc"
-cat <<'__EOF__' >> "/home/$username/.bashrc"
-export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-echo "enter \"system\" to configure system settings"
-__EOF__
-
-while ! passwd --quiet "$username"; do
-	echo "an error occured; please try again"
-done
-echo; echo "set sudo password"
-while ! passwd --quiet; do
-	echo "an error occured; please try again"
-done
-# lock root account
-passwd --lock root
-
-# guest user:
-# read'only access to projects
-# in the same group as the first user
-# during login, creates a symlink for each project directory
 
 cat <<'__EOF__' > /usr/local/bin/sudo-chkpasswd
 #!/bin/bash
@@ -87,3 +63,28 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 	</action>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.sudo.policy
+
+echo; echo -n "set username: "
+read -r username
+groupadd -f netdev; groupadd -f bluetooth
+useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
+echo >> "/home/$username/.bashrc"
+cat <<'__EOF__' >> "/home/$username/.bashrc"
+export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
+echo "enter \"system\" to configure system settings"
+__EOF__
+
+while ! passwd --quiet "$username"; do
+	echo "an error occured; please try again"
+done
+echo; echo "set sudo password"
+while ! passwd --quiet; do
+	echo "an error occured; please try again"
+done
+# lock root account
+passwd --lock root
+
+# guest user:
+# read'only access to projects
+# in the same group as the first user
+# during login, creates a symlink for each project directory
