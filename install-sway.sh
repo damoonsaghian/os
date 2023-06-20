@@ -1,5 +1,5 @@
-apt-get -qq install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland \
-	fuzzel hicolor-icon-theme xdg-utils foot
+apt-get -qq install sway swayidle i3status fonts-fork-awesome grim wl-clipboard xwayland \
+	fuzzel hicolor-icon-theme foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -7,12 +7,7 @@ if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
 	exec sway -c /usr/local/share/sway.conf
 fi
 ' > /etc/profile.d/zz-sway.sh
-
-# console level keybinding: when "F8" is pressed: loginctl lock-sessions
-
-# to prevent BadUSB, when a new input device is connected lock the session
-echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' > \
-	/etc/udev/rules.d/80-lock-new-hid.rules
+# this way, sway config can't be changed by a normal user
 
 cp /mnt/sway.conf /mnt/sway-status.sh /usr/local/share/
 
@@ -95,9 +90,9 @@ echo -n '<?xml version="1.0"?>
 #= fuzzel
 echo -n 'font=sans
 terminal=foot
-launch-prefix=/usr/local/bin/fuzzel-launch-app
+launch-prefix=/usr/local/bin/fuzzel-launch-app %c
 [colors]
-background=222222dd
+background=222222ff
 text=eeeeeeff
 match=eeeeeeff
 selection=4285F4dd
@@ -110,60 +105,22 @@ cancel=Escape Control+q
 
 cat <<'__EOF__' > /usr/local/bin/fuzzel-launch-app
 #!/bin/sh
-app_name="$(basename "$1")"
+app_name="$1"
+shift
 swaymsg workspace "$app_name"
-swaymsg mark --add FOCUSED
-if swaymsg "[con_mark=\"$app_name\"] focus"; then
-	swaymsg "[workspace=__focused__ con_mark=FOCUSED] focus; unmark FOCUSED"
-else
-	swaymsg "unmark FOCUSED; \
-		[workspace=__focused__] move workspace TMP; \
-		#workspace \"$app_name\"; \
-		exec \"$1\"; \
-		mark \"$app_name\"; \
-		[workspace=TMP] move workspace current"
+if ! swaymsg "[con_id=__focused__] focus"; then
+	swaymsg exec -- "$@"
 fi
 __EOF__
 chmod +x /usr/local/bin/fuzzel-launch-app
-
-#= session manager
-cat <<'__EOF__' > /usr/local/bin/session-manager
-#!/bin/sh
-printf "lock\nsuspend\nexit\nreboot\npoweroff" |
-fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
-	read answer
-	case $answer in
-		lock) loginctl lock-session ;;
-		suspend) systemctl suspend ;;
-		exit) swaymsg exit ;;
-		reboot) systemctl reboot ;;
-		poweroff) systemctl poweroff ;;
-	esac
-}
-__EOF__
-chmod +x /usr/local/bin/session-manager
-
-mkdir -p /usr/local/share/applications
-
-echo -n '[Desktop Entry]
-Type=Application
-Name=Session Manager
-Icon=session-manager
-Exec=/usr/local/bin/session-manager
-' > /usr/local/share/applications/session-manager.desktop
-
-mkdir -p /usr/local/share/icons/hicolor/scalable/apps
-echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" >
-	<path d="M0 0h24v24H0z" fill="none" stroke="none"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="9"/>
-</svg>
-' > /usr/local/share/icons/hicolor/scalable/apps/session-manager.svg
 
 #= terminal
 echo -n '#!/bin/sh
 footclient --no-wait || foot
 ' > /usr/local/bin/terminal
 chmod +x /usr/local/bin/terminal
+
+mkdir -p /usr/local/share/applications
 echo -n '[Desktop Entry]
 Type=Application
 Name=Terminal

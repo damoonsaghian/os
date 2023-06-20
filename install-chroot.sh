@@ -106,7 +106,7 @@ RouteMetric=700
 systemctl enable systemd-networkd
 apt-get -qq install systemd-resolved
 
-. /mnt/install-sudo.sh
+. /mnt/install-user.sh
 
 . /mnt/install-system.sh
 

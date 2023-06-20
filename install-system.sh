@@ -32,30 +32,6 @@ echo -n 'polkit.addRule(function(action, subject) {
 });
 ' > /etc/polkit-1/rules.d/49-timezone.rules
 
-echo; echo -n "set username: "
-read -r username
-useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
-echo >> "/home/$username/.bashrc"
-cat <<'__EOF__' >> "/home/$username/.bashrc"
-export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-echo "enter \"system\" to configure system settings"
-__EOF__
-
-while ! passwd --quiet "$username"; do
-	echo "an error occured; please try again"
-done
-echo; echo "set sudo password"
-while ! passwd --quiet; do
-	echo "an error occured; please try again"
-done
-# lock root account
-passwd --lock root
-
-# guest user:
-# read'only access to projects
-# in the same group as the first user
-# during login, creates a symlink for each project directory
-
 # let any user to run "pkexec apt-get update"
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
