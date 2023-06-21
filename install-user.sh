@@ -1,25 +1,16 @@
-apt-get -qq install dbus-user-session pkexec kbd whois physlock
+apt-get -qq install dbus-user-session pkexec kbd physlock
 # kbd is needed for its openvt
-# whois is needed for its mkpasswd
 
 cat <<'__EOF__' > /usr/local/bin/chkpasswd
 #!/bin/bash
 set -e
 username="$1"
-shift
-passwd_hashed="$(sed -n "/$username/p" /etc/shadow | cut -d ':' -f2)"
-hash_method="$(echo "$passwd_hashed" | cut -d '$' -f3)"
-case "$hash_method" in
-	1) hash_method=md5 ;;
-	5) hash_method=sha-256 ;;
-	6) hash_method=sha-512 ;;
-	*) echo "error: password hash type is unsupported"; exit 1 ;;
-esac
-salt="$(echo "$passwd_hashed" | cut -d '$' -f4)"
-echo "$@"
-printf "to run above command, enter root password: "
+prompt="$2"
+passwd_hashed="$(sed -n "/$username/p" /etc/shadow | cut -d ':' -f2 | sed  -n 's/^!//p')"
+salt="$(echo "$passwd_hashed" | grep -o '.*\$')"
+printf "$prompt "
 IFS= read -rs entered_passwd
-entered_passwd_hashed="$(MKPASSWD_OPTIONS="--method='$hash_method' '$entered_passwd' '$salt'" mkpasswd)"
+entered_passwd_hashed="$(PASS="$entered_passwd" SALT="$salt" perl -le 'print crypt($ENV{PASS}, $ENV{SALT})')"
 if [ "$entered_passwd_hashed" = "$passwd_hashed" ]; then
   exit 0
 else
@@ -28,16 +19,18 @@ fi
 __EOF__
 chmod +x /usr/local/bin/chkpasswd
 
-echo -n '#!pkexec /bin/sh
+cat <<'__EOF__' > /usr/local/bin/sudo
+#!/usr/bin/pkexec /bin/sh
 set -e
 # switch to the first available virtual terminal and ask for root password
 # and if successful, run the given command
-if openvt -sw -- /usr/local/bin/chkpasswd root "$@"; then
+prompt="$@\nsudo password:"
+if openvt -sw -- /usr/local/bin/chkpasswd root "$prompt"; then
 	$@
 else
 	echo "authentication failure"
 fi
-' > /usr/local/bin/sudo
+__EOF__
 chmod +x /usr/local/bin/sudo
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
@@ -54,12 +47,13 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.sudo.policy
 
-echo '#!pkexec /bin/sh
+echo '#!/usr/bin/pkexec /bin/sh
 set -e
 username="$(logname)"
+chkpasswd=/usr/local/bin/chkpasswd
 user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 openvt --switch --console=13 -- sh -c \
-	"physlock -l; while ! chkpasswd \"$username\"; do true; done && physlock -L; chvt \"$user_vt\""
+	"physlock -l; while ! $chkpasswd \"$username\" "password:"; do true; done && physlock -L; chvt \"$user_vt\""
 ' > /usr/local/bin/lock
 chmod +x /usr/local/bin/lock
 
