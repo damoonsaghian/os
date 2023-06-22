@@ -1,15 +1,16 @@
 apt-get -qq install dbus-user-session pkexec kbd physlock
-# kbd is needed for its openvt
+# kbd is needed for its openvt and chvt
 
 cat <<'__EOF__' > /usr/local/bin/chkpasswd
 #!/bin/bash
 set -e
 username="$1"
 prompt="$2"
-passwd_hashed="$(sed -n "/$username/p" /etc/shadow | cut -d ':' -f2 | sed  -n 's/^!//p')"
+passwd_hashed="$(sed -n "/$username/p" /etc/shadow | cut -d ':' -f2 | cut -d '!' -f 2)"
 salt="$(echo "$passwd_hashed" | grep -o '.*\$')"
 printf "$prompt "
 IFS= read -rs entered_passwd
+echo
 entered_passwd_hashed="$(PASS="$entered_passwd" SALT="$salt" perl -le 'print crypt($ENV{PASS}, $ENV{SALT})')"
 if [ "$entered_passwd_hashed" = "$passwd_hashed" ]; then
   exit 0
@@ -47,14 +48,15 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.sudo.policy
 
-echo '#!/usr/bin/pkexec /bin/sh
+cat <<'__EOF__' > /usr/local/bin/lock
+#!/usr/bin/pkexec /bin/sh
 set -e
-username="$(logname)"
-chkpasswd=/usr/local/bin/chkpasswd
+chkpasswd="/usr/local/bin/chkpasswd \"$(logname)\" 'password:'"
 user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
-openvt --switch --console=13 -- sh -c \
-	"physlock -l; while ! $chkpasswd \"$username\" "password:"; do true; done && physlock -L; chvt \"$user_vt\""
-' > /usr/local/bin/lock
+deallocvt 12
+openvt --switch --console=12 -- sh -c \
+	"physlock -l; while ! $chkpasswd; do true; done && physlock -L; chvt \"$user_vt\""
+__EOF__
 chmod +x /usr/local/bin/lock
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
