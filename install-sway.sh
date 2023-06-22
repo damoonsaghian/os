@@ -1,5 +1,4 @@
-apt-get -qq install sway swayidle i3status fonts-fork-awesome grim wl-clipboard xwayland \
-	fuzzel hicolor-icon-theme foot
+apt-get -qq install sway swayidle i3status fonts-fork-awesome grim wl-clipboard xwayland tofi foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -87,32 +86,51 @@ echo -n '<?xml version="1.0"?>
 </fontconfig>
 ' > /etc/fonts/local.conf
 
-#= fuzzel
-echo -n 'font=sans
-terminal=foot
-launch-prefix=/usr/local/bin/fuzzel-launch-app %c
-[colors]
-background=222222ff
+cat <<'__EOF__' > /usr/local/share/apps.sh
+#!/bin/sh
+swaymsg mode apps
+app_path="$(tofi-drun --config=/usr/local/share/tofi.cfg)"
+swaymsg mode default
+#
+__EOF__
+
+cat <<'__EOF__' > /usr/local/share/session.sh
+printf 'lock\nsuspend\nexit\nreboot\npoweroff' |
+tofi --config=/usr/local/share/tofi.cfg | {
+	read answer
+	case $$answer in
+	lock) /usr/local/bin/lock ;;
+	suspend) systemctl suspend ;;
+	exit) swaymsg exit ;;
+	reboot) systemctl reboot ;;
+	poweroff) systemctl poweroff ;;
+	esac
+}
+__EOF__
+
+echo -n 'history = false
+require-match = true
+drun-launch = false
+font = sans
+background-color = 222222ff
+prompt-text = ""
+width = 40%
+height = 70%
+border-width = 1
+outline-width = 0
+padding-left = 35%
+padding-right = 35%
+padding-top = 20%
+padding-bottom = 20%
+result-spacing = 25
+
 text=eeeeeeff
 match=eeeeeeff
 selection=4285F4dd
 selection-text=ffffffff
 selection-match=ffffffff
 border=222222ff
-[key-bindings]
-cancel=Escape Control+q
-' > /usr/local/share/fuzzel.ini
-
-cat <<'__EOF__' > /usr/local/bin/fuzzel-launch-app
-#!/bin/sh
-app_name="$1"
-shift
-swaymsg workspace "$app_name"
-if ! swaymsg "[con_id=__focused__] focus"; then
-	swaymsg exec -- "$@"
-fi
-__EOF__
-chmod +x /usr/local/bin/fuzzel-launch-app
+' > /usr/local/share/tofi.cfg
 
 #= terminal
 echo -n '#!/bin/sh
