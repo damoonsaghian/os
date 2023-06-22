@@ -112,4 +112,19 @@ echo 'LANG=C.UTF-8' > /etc/default/locale
 
 . /mnt/install-sway.sh
 
+# allow udisks2 to mount all devices except when it's an EFI partition
+echo -n 'polkit.addRule(function(action, subject) {
+	function isNotEfiPartition(devicePath) {
+		var partitionType = polkit.spawn(["lsblk", "--noheadings", "-o", "PARTTYPENAME", devicePath]);
+		if (partitionType.indexOf("EFI System") === -1) return true;
+	}
+	if (subject.local && subject.active &&
+		action.id === "org.freedesktop.udisks2.filesystem-mount-system" &&
+		isNotEfiPartition(action.lookup("device"))
+	) {
+		return polkit.Result.YES;
+	}
+});
+' > /etc/polkit-1/rules.d/49-udisks.rules
+
 apt-get -qq install jina codev 2>/dev/null || true
