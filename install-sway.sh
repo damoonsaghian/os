@@ -41,7 +41,7 @@ volume master {
 	format = "%devicename: %volume"
 }
 run_watch scrrec {
-	path = ".cache/screenrec-pid"
+	pidfile = ".cache/screenrec-pid"
 	format = "%status"
 }
 time {
@@ -86,19 +86,25 @@ echo -n '<?xml version="1.0"?>
 </fontconfig>
 ' > /etc/fonts/local.conf
 
-cat <<'__EOF__' > /usr/local/share/apps.sh
-#!/bin/sh
+# app launcher
+# this is not the right way; there is no way to get the app name, hence the bad hack for "app_name"
+# find a better solution
+# https://github.com/Biont/sway-launcher-desktop/blob/master/sway-launcher-desktop.sh
+cat <<'__EOF__' > /usr/local/share/sway-apps.sh
 swaymsg mode apps
-app_path="$(tofi-drun --config=/usr/local/share/tofi.cfg)"
+app_exec="$(tofi-drun --config=/usr/local/share/tofi.cfg)"
 swaymsg mode default
-#
+app_name="$(echo "$app_exec" | cut -d " " -f1)"
+app_name="$(basename "$app_name")"
+cleanup_workspace="swaymsg [ workspace = \"$app_name\" ] kill"
+swaymsg workspace "$app_name"
+swaymsg [ con_id = __focused__ ] focus || swaymsg exec "$app_exec; $cleanup_workspace"
 __EOF__
 
-cat <<'__EOF__' > /usr/local/share/session.sh
-printf 'lock\nsuspend\nexit\nreboot\npoweroff' |
-tofi --config=/usr/local/share/tofi.cfg | {
+cat <<'__EOF__' > /usr/local/share/sway-session.sh
+printf 'lock\nsuspend\nexit\nreboot\npoweroff' | tofi --config=/usr/local/share/tofi.cfg | {
 	read answer
-	case $$answer in
+	case $answer in
 	lock) /usr/local/bin/lock ;;
 	suspend) systemctl suspend ;;
 	exit) swaymsg exit ;;
@@ -108,28 +114,21 @@ tofi --config=/usr/local/share/tofi.cfg | {
 }
 __EOF__
 
-echo -n 'history = false
-require-match = true
-drun-launch = false
+echo -n 'drun-launch = false
+terminal = foot
+history = false
 font = sans
-background-color = 222222ff
+font-size = 18
+text-color = eeeeee
+background-color = 222222
+selection-color = 4285F4
 prompt-text = ""
+text-cursor = true
 width = 40%
 height = 70%
 border-width = 1
+border-color = 4285F4
 outline-width = 0
-padding-left = 35%
-padding-right = 35%
-padding-top = 20%
-padding-bottom = 20%
-result-spacing = 25
-
-text=eeeeeeff
-match=eeeeeeff
-selection=4285F4dd
-selection-text=ffffffff
-selection-match=ffffffff
-border=222222ff
 ' > /usr/local/share/tofi.cfg
 
 #= terminal
@@ -198,29 +197,3 @@ bright7=FCFCFA
 selection-background=555555
 selection-foreground=dddddd
 __EOF__
-
-echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<svg height="128px" viewBox="0 0 128 128" width="128px">
-    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="11.999989" x2="115.999989" y1="64" y2="64">
-        <stop offset="0" stop-color="#3d3846"/>
-        <stop offset="0.05" stop-color="#77767b"/>
-        <stop offset="0.1" stop-color="#5e5c64"/>
-        <stop offset="0.899999" stop-color="#504e56"/>
-        <stop offset="0.95" stop-color="#77767b"/>
-        <stop offset="1" stop-color="#3d3846"/>
-    </linearGradient>
-    <linearGradient id="b" gradientUnits="userSpaceOnUse" x1="12" x2="112.041023" y1="60" y2="80.988281">
-        <stop offset="0" stop-color="#77767b"/>
-        <stop offset="0.384443" stop-color="#9a9996"/>
-        <stop offset="0.720567" stop-color="#77767b"/>
-        <stop offset="1" stop-color="#68666f"/>
-    </linearGradient>
-    <path d="m 20 22 h 88 c 4.417969 0 8 3.582031 8 8 v 78 c 0 4.417969 -3.582031 8 -8 8 h -88 c -4.417969 0 -8 -3.582031 -8 -8 v -78 c 0 -4.417969 3.582031 -8 8 -8 z m 0 0" fill="url(#a)"/>
-    <path d="m 20 12 h 88 c 4.417969 0 8 3.582031 8 8 v 80 c 0 4.417969 -3.582031 8 -8 8 h -88 c -4.417969 0 -8 -3.582031 -8 -8 v -80 c 0 -4.417969 3.582031 -8 8 -8 z m 0 0" fill="url(#b)"/>
-    <path d="m 20 14 h 88 c 3.3125 0 6 2.6875 6 6 v 80 c 0 3.3125 -2.6875 6 -6 6 h -88 c -3.3125 0 -6 -2.6875 -6 -6 v -80 c 0 -3.3125 2.6875 -6 6 -6 z m 0 0" fill="#241f31"/>
-    <g fill="#62c9ea">
-        <path d="m 46.011719 40.886719 l -14.011719 -7.613281 v 4.726562 l 9.710938 4.628906 v 0.144532 l -9.710938 5.226562 v 4.726562 l 14.011719 -8.210937 z m 0 0"/>
-        <path d="m 50 56 v 4 h 16 v -4 z m 0 0"/>
-    </g>
-</svg>
-' > /usr/local/share/icons/hicolor/scalable/apps/terminal.svg

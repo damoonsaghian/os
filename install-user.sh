@@ -21,13 +21,14 @@ __EOF__
 chmod +x /usr/local/bin/chkpasswd
 
 cat <<'__EOF__' > /usr/local/bin/sudo
-#!/usr/bin/pkexec /bin/sh
+#!/usr/bin/env -S pkexec --keep-cwd /bin/bash
 set -e
 # switch to the first available virtual terminal and ask for root password
 # and if successful, run the given command
-prompt="$@\nsudo password:"
+prompt_command="\\e[92m$(printf "%q " "$@")\\e[0m"
+prompt="$prompt_command\nPWD: $PWD\nsudo password:"
 if openvt -sw -- /usr/local/bin/chkpasswd root "$prompt"; then
-	$@
+	"$@"
 else
 	echo "authentication failure"
 fi
@@ -42,7 +43,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 		<description>sudo</description>
 		<message>sudo</message>
 		<defaults><allow_active>yes</allow_active></defaults>
-		<annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+		<annotate key="org.freedesktop.policykit.exec.path">/bin/bash</annotate>
 		<annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sudo</annotate>
 	</action>
 </policyconfig>

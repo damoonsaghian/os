@@ -31,9 +31,8 @@ last_internet_total=0
 last_internet_total=0
 internet_speed_average=0
 
-i3status -c /usr/local/share/i3status.conf | while true; do
-	IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time_i3s
-	
+i3status -c /usr/local/share/i3status.conf | \
+while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time_i3s; do
 	time=$(date +%s)
 	interval=$(( time - last_time ))
 	[ $interval = 0 ] && {
