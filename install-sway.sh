@@ -96,9 +96,9 @@ app_exec="$(tofi-drun --config=/usr/local/share/tofi.cfg)"
 swaymsg mode default
 app_name="$(echo "$app_exec" | cut -d " " -f1)"
 app_name="$(basename "$app_name")"
-cleanup_workspace="swaymsg [ workspace = \"$app_name\" ] kill"
+cleanup_workspace="swaymsg [workspace=\"$app_name\"] kill"
 swaymsg workspace "$app_name"
-swaymsg [ con_id = __focused__ ] focus || swaymsg exec "$app_exec; $cleanup_workspace"
+swaymsg [con_id=__focused__] focus || swaymsg exec "$app_exec; $cleanup_workspace"
 __EOF__
 
 cat <<'__EOF__' > /usr/local/share/sway-session.sh
