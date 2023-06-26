@@ -77,6 +77,7 @@ esac
 apt-get -qq --purge autoremove
 apt-get -qq autoclean
 __EOF__
+chmod +x /usr/local/bin/system-packages
 
 mkdir -p /usr/local/lib/systemd/system
 echo -n '[Unit]

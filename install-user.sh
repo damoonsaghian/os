@@ -54,7 +54,7 @@ cat <<'__EOF__' > /usr/local/bin/lock
 set -e
 chkpasswd="/usr/local/bin/chkpasswd \"$(logname)\" 'password:'"
 user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
-deallocvt 12
+deallocvt
 openvt --switch --console=12 -- sh -c \
 	"physlock -l; while ! $chkpasswd; do true; done && physlock -L; chvt \"$user_vt\""
 __EOF__

@@ -189,7 +189,7 @@ manage_packages() {
 		[ "$answer" = yes ] || exit
 	}
 	
-	sudo /usr/local/bin/system-packages "$mode" "$package_name"
+	sudo system-packages "$mode" "$package_name"
 }
 
 if [ -z "$1" ]; then

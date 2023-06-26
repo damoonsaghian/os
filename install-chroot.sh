@@ -100,9 +100,14 @@ RouteMetric=700
 # https://wiki.archlinux.org/title/Mobile_broadband_modem
 # https://github.com/systemd/systemd/issues/20370
 systemctl enable systemd-networkd
-apt-get -qq install systemd-resolved
+apt-get -qq install systemd-resolved systemd-timesyncd
 
-apt-get -qq install systemd-timesyncd pipewire-audio
+apt-get -qq install pipewire-audio
+mkdir -p /etc/wireplumber/main.lua.d
+echo 'device_defaults.properties = {
+	["default-volume"] = 1.0,
+	["default-input-volume"] = 1.0,
+}' > /etc/wireplumber/main.lua.d/51-default-volume.lua
 
 echo 'LANG=C.UTF-8' > /etc/default/locale
 

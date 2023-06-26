@@ -8,7 +8,7 @@ graph() {
 	elif [ "$percentage" = 100 ]; then
 		graph="█"
 	else
-		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f $(( percentage/10 )))"
+		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f $(( percentage/10 + 1)))"
 	fi
 	
 	[ "$percentage" -gt 95 ] && foreground_color='foreground="red"'
@@ -90,7 +90,7 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 	else
 		bat_status="$(echo "$bat_i3s" | cut -d ": " -f 1)"
 		bat_percentage="$(echo "$bat_i3s" | cut -d ": " -f 2)"
-		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 )))"
+		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 + 1 )))"
 		bat="  $bat"
 		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
 		[ "$bat_percentage" -lt 5 ] && bat="<span foreground=\"red\">$bat</span>"
