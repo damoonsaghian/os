@@ -18,12 +18,11 @@ then run this in a terminal (note that s390x and mips architectures are not supp
 ; sudo sh <path-to-this-project-directory>/install.sh
 
 in the installed system:
-press and release "alt" to open app launcher (then press "space" to launch the selected app)
+press and release "alt" to open app launcher
 press "alt" twice to switch between the two most recent apps
 press "alt+space" or "alt+tab" to switch between windows of a workspace
-press "alt+enter" to close focused window
-
-while in app launcher, press "enter" to open session manager, in which you can:
+press "alt+escape" to close focused window
+press "alt+enter" to open session manager, in which you can:
 	lock the session, suspend, exit, reboot, or poweroff
 
 a terminal emulator application is installed by default

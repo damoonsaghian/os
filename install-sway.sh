@@ -112,10 +112,9 @@ __EOF__
 
 cat <<'__EOF__' > /usr/local/bin/sway-apps
 #!/bin/sh
-workspace_name="$(echo -n "$1" | md5sum)"
+workspace_name="$(echo -n "$@" | md5sum)"
 swaymsg workspace "$workspace_name"
-swaymsg "[con_id=__focused__] focus" ||
-	swaymsg exec "$@; swaymsg \"[workspace=$workspace_name] kill\""
+swaymsg "[con_id=__focused__] focus" || swaymsg exec -- $@
 __EOF__
 chmod +x /usr/local/bin/sway-apps
 
