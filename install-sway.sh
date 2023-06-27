@@ -1,5 +1,4 @@
-apt-get -qq install sway swayidle i3status fonts-fork-awesome grim wl-clipboard xwayland \
-	fuzzel hicolor-icon-theme foot
+apt-get -qq install sway swayidle i3status fonts-fork-awesome xwayland fuzzel hicolor-icon-theme foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -88,11 +87,9 @@ echo -n '<?xml version="1.0"?>
 ' > /etc/fonts/local.conf
 
 cat <<'__EOF__' > /usr/local/share/sway-session.sh
-printf 'lock\nsuspend\nexit\nreboot\npoweroff' | {
-	swaymsg '[workspace=__focused__] opacity 0.5; mode session_manager' > /dev/null 2>&1
-	fuzzel --dmenu --config=/usr/local/share/fuzzel.ini 
-	swaymsg '[workspace=__focused__] opacity 1; mode default' > /dev/null 2>&1
-} | {
+# close previous instance of fuzzel, if any
+swaymsg "workspace 0; workspace back_and_forth"
+printf 'lock\nsuspend\nexit\nreboot\npoweroff' | fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
 	read answer
 	case $answer in
 	lock) /usr/local/bin/lock ;;
@@ -105,37 +102,43 @@ printf 'lock\nsuspend\nexit\nreboot\npoweroff' | {
 __EOF__
 
 cat <<'__EOF__' > /usr/local/share/sway-apps.sh
-swaymsg '[workspace=__focused__] opacity 0.5; mode app_launcher'
+# close previous instance of fuzzel, if any
+swaymsg "workspace 0; workspace back_and_forth"
+swaymsg mode sway_apps
 fuzzel --launch-prefix=/usr/local/bin/sway-apps --config=/usr/local/share/fuzzel.ini
-swaymsg '[workspace=__focused__] opacity 1; mode default'
+swaymsg mode default
 __EOF__
 
 cat <<'__EOF__' > /usr/local/bin/sway-apps
 #!/bin/sh
-workspace_name="$(echo -n "$@" | md5sum)"
-swaymsg workspace "$workspace_name"
+swaymsg workspace "1:w$(echo -n "$@" | cut -d " " -f1 |  md5sum)"
 swaymsg "[con_id=__focused__] focus" || swaymsg exec -- $@
 __EOF__
 chmod +x /usr/local/bin/sway-apps
 
 echo -n 'font=sans:size=12.5
 prompt=" "
+fields=name
 terminal=foot
 horizontal-pad=20
 vertical-pad=20
 image-size-ratio=0
 line-height=38
 layer=overlay
-[border]
-width=0
-radius=0
 [colors]
 background=222222ff
 text=eeeeeeff
 match=eeeeeeff
-selection=4285F4dd
+selection=4285F4ff
 selection-text=ffffffff
 selection-match=ffffffff
+border=ffffff22
+[border]
+width=1     
+radius=0
+[key-bindings]
+execute=Return KP_Enter space
+cancel=Control+q Escape
 ' > /usr/local/share/fuzzel.ini
 
 cat <<'__EOF__' > /usr/local/share/foot.ini

@@ -56,7 +56,9 @@ chkpasswd="/usr/local/bin/chkpasswd \"$(logname)\" 'password:'"
 user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 deallocvt
 openvt --switch --console=12 -- sh -c \
-	"physlock -l; while ! $chkpasswd; do true; done && physlock -L; chvt \"$user_vt\""
+	"setterm --powerdown 1; physlock -l;
+	while ! $chkpasswd; do true; done &&
+	setterm --powerdown 0; physlock -L; chvt \"$user_vt\""
 __EOF__
 chmod +x /usr/local/bin/lock
 
