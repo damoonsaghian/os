@@ -88,7 +88,7 @@ echo -n '<?xml version="1.0"?>
 
 cat <<'__EOF__' > /usr/local/share/sway-session.sh
 # close previous instance of fuzzel, if any
-swaymsg "workspace 0; workspace back_and_forth"
+swaymsg "[con_id=__focused__] focus" || swaymsg "workspace 1; workspace back_and_forth"
 printf 'lock\nsuspend\nexit\nreboot\npoweroff' | fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
 	read answer
 	case $answer in
@@ -103,7 +103,7 @@ __EOF__
 
 cat <<'__EOF__' > /usr/local/share/sway-apps.sh
 # close previous instance of fuzzel, if any
-swaymsg "workspace 0; workspace back_and_forth"
+swaymsg "[con_id=__focused__] focus" || swaymsg "workspace 1; workspace back_and_forth"
 swaymsg mode sway_apps
 fuzzel --launch-prefix=/usr/local/bin/sway-apps --config=/usr/local/share/fuzzel.ini
 swaymsg mode default
@@ -111,7 +111,7 @@ __EOF__
 
 cat <<'__EOF__' > /usr/local/bin/sway-apps
 #!/bin/sh
-swaymsg workspace "1:w$(echo -n "$@" | cut -d " " -f1 |  md5sum)"
+swaymsg workspace "0:w$(echo -n "$@" | cut -d " " -f1 |  md5sum)"
 swaymsg "[con_id=__focused__] focus" || swaymsg exec -- $@
 __EOF__
 chmod +x /usr/local/bin/sway-apps
