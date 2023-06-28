@@ -57,7 +57,8 @@ user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 deallocvt
 openvt --switch --console=12 -- sh -c \
 	"setterm --powerdown 1; physlock -l;
-	while ! $chkpasswd; do true; done &&
+	sleep_time=1;
+	while ! $chkpasswd; do sleep_time=\$((sleep_time+1)); sleep \$sleep_time; done &&
 	setterm --powerdown 0; physlock -L; chvt \"$user_vt\""
 __EOF__
 chmod +x /usr/local/bin/lock

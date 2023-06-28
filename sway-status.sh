@@ -1,7 +1,7 @@
 graph() {
 	local graph= foreground_color=
-	local percentage="$(echo "$1" | cut -d % -f 1 | cut -d . -f 1)"
-	local percentage_average="$(echo "$2" | cut -d % -f 1 | cut -d . -f 1)"
+	local percentage="$1"
+	local percentage_average="$2"
 	
 	if [ "$percentage" = 0 ]; then
 		graph=" "
@@ -32,7 +32,7 @@ last_internet_total=0
 internet_speed_average=0
 
 i3status -c /usr/local/share/i3status.conf | \
-while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time_i3s; do
+while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time_i3s; do
 	time=$(date +%s)
 	interval=$(( time - last_time ))
 	[ $interval = 0 ] && {
@@ -43,12 +43,16 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 	# last'minute average factor
 	lmaf=$(( 60 / interval ))
 	
+	cpu_usage="$(echo $cpu_usage | cut -d % -f 1 | cut -d . -f 1 | sed 's/^0*//')"
+	[ -z "$cpu_usage" ] && cpu_usage=0
 	cpu="$(graph "$cpu_usage" "$cpu_usage_average")"
 	cpu_usage_average=$(( (cpu_usage + cpu_usage_average*lmaf) / (lmaf+1) ))
 	
+	mem_usage="$(echo $mem_usage | cut -d % -f 1 | cut -d . -f 1 | sed 's/^0*//')"
+	[ -z "$mem_usage" ] && mem_usage=0
 	mem="$(graph "$mem_usage" "$mem_usage_average")"
 	mem_usage_average=$(( (mem_usage + mem_usage_average*lmaf) / (lmaf+1) ))
-
+	
 	disk=""
 	# if writing to disk, disk_w=30
 	# if reading from disk, disk_r=30
@@ -85,11 +89,12 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 	# "  "
 	pm=
 	
+	bat_i3s="$(echo $bat_i3s)" # this eliminates spaces at the biginning and the end
 	if [ "$bat_i3s" = null ]; then
 		bat=""
 	else
-		bat_status="$(echo "$bat_i3s" | cut -d ": " -f 1)"
-		bat_percentage="$(echo "$bat_i3s" | cut -d ": " -f 2)"
+		bat_status="$(echo "$bat_i3s" | cut -d ":" -f 1)"
+		bat_percentage="$(echo "$bat_i3s" | cut -d ":" -f 2 | sed 's/^ *//')"
 		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 + 1 )))"
 		bat="  $bat"
 		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
@@ -101,7 +106,7 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
-	active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+	active_net_device="$(networkctl list | grep routable | { read -r _ net_dev _; echo $net_dev; })"
 	[ -n "$active_net_device" ] && {
 		read -r internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
 		read -r internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
@@ -121,6 +126,7 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 		internet="<span $internet_icon_foreground_color></span>${internet_total}[$internet_speed]"
 	}
 	
+	wifi_i3s="$(echo $wifi_i3s)" # this eliminates spaces at the biginning and the end
 	if [ "$wifi_i3s" = null ]; then
 		wifi=""
 	elif [ "$wifi_i3s" -lt 25 ]; then
@@ -138,11 +144,13 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 	# bluetooth: "  "
 	blt=
 	
-	audio_out_dev="$(echo "$audio_i3s" | cut -d ": " -f 1)"
+	audio_i3s="$(echo $audio_i3s)" # this eliminates spaces at the biginning and the end
+	audio_out_dev="$(echo "$audio_i3s" | cut -d ":" -f 1)"
 	if [ "$audio_out_dev" = "Dummy Output" ]; then
 		audio=""
 	else
-		audio_out_vol="$(echo "$audio_i3s" | cut -d ": " -f 2 | cut -d % -f 1)"
+		audio_out_vol="$(echo "$audio_i3s" | cut -d ":" -f 2 | sed 's/^ *//' | cut -d % -f 1 | sed 's/^0*//')"
+		[ -z "$audio_out_vol" ] && audio_out_vol=0
 		if [ "$audio_out_vol" -eq 100 ]; then
 			audio="  "
 		elif [ "$audio_out_vol" -eq 0 ]; then
@@ -171,7 +179,10 @@ while IFS=" | " read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec ti
 	
 	# screen recording indicator:
 	scr=""
-	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤  </span>"
+	scrrec="$(echo $scrrec)" # this eliminates spaces at the biginning and the end
+	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span>"
+	
+	time_i3s="$(echo $time_i3s)" # this eliminates spaces at the biginning and the end
 	
 	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
 done
