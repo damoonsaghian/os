@@ -102,7 +102,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
 	fi
 	
-	# "$gnunet_total[$gnunet_speed]  "
+	# "$gnunet_total[$gnunet_speed] "
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
@@ -130,18 +130,18 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	if [ "$wifi_i3s" = null ]; then
 		wifi=""
 	elif [ "$wifi_i3s" -lt 25 ]; then
-		wifi="<span foreground=\"#ff00ff\">$wifi</span>"
+		wifi="<span foreground=\"#ff00ff\"> </span>"
 	elif [ "$wifi_i3s" -lt 50 ]; then
-		wifi="<span foreground=\"red\">$wifi</span>"
+		wifi="<span foreground=\"red\"> </span>"
 	elif [ "$wifi_i3s" -lt 75 ]; then
-		wifi="<span foreground=\"#ffffcc\">$wifi</span>"
+		wifi="<span foreground=\"#ffffcc\"> </span>"
 	else
-		wifi="  "
+		wifi=" "
 	fi
 	
-	# cell: "  "
+	# cell: " "
 	
-	# bluetooth: "  "
+	# bluetooth: " "
 	blt=
 	
 	audio_i3s="$(echo $audio_i3s)" # this eliminates spaces at the biginning and the end
@@ -152,37 +152,37 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		audio_out_vol="$(echo "$audio_i3s" | cut -d ":" -f 2 | sed 's/^ *//' | cut -d % -f 1 | sed 's/^0*//')"
 		[ -z "$audio_out_vol" ] && audio_out_vol=0
 		if [ "$audio_out_vol" -eq 100 ]; then
-			audio="  "
+			audio=" "
 		elif [ "$audio_out_vol" -eq 0 ]; then
-			audio="  "
+			audio=" "
 		elif [ "$audio_out_vol" -lt 10 ]; then
-			audio="<span foreground=\"red\">  </span>"
+			audio="<span foreground=\"red\"> </span>"
 		elif [ "$audio_out_vol" -lt 20 ]; then
-			audio="<span foreground=\"#ffffcc\">  </span>"
+			audio="<span foreground=\"#ffffcc\"> </span>"
 		elif [ "$audio_out_vol" -lt 50 ]; then
-			audio="<span foreground=\"#ffffcc\">  </span>"
+			audio="<span foreground=\"#ffffcc\"> </span>"
 		else
-			audio="<span foreground=\"#ffffcc\">  </span>"
+			audio="<span foreground=\"#ffffcc\"> </span>"
 		fi
 	fi
 	
-	# mic: "  "
+	# mic: " "
 	# visible only when it's active; green if volume is full, yellow and red if volume is low
-	# mic muted: "  "
+	# mic muted: " "
 	# https://github.com/xenomachina/i3pamicstatus
 	#audio_In_dev=
 	#[ "$audio_In_dev" = "Dummy Input" ] && mic=""
 	
-	# cam: "<span foreground=\"green\">  </span>"
+	# cam: "<span foreground=\"green\"> </span>"
 	# visible only when it's active
 	cam=""
 	
 	# screen recording indicator:
 	scr=""
 	scrrec="$(echo $scrrec)" # this eliminates spaces at the biginning and the end
-	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span>"
+	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤ </span>"
 	
 	time_i3s="$(echo $time_i3s)" # this eliminates spaces at the biginning and the end
 	
-	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
+	echo " $cpu$mem $disk$backup$pm$bat $gnunet$internet $wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
 done
