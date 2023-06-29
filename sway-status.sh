@@ -3,24 +3,20 @@ graph() {
 	local percentage="$1"
 	local percentage_average="$2"
 	
-	if [ "$percentage" = 0 ]; then
-		graph=" "
-	elif [ "$percentage" = 100 ]; then
-		graph="█"
-	else
-		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f $(( percentage/10 + 1)))"
-	fi
+	graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇ ▇ █" | cut -d " " -f $(( percentage/10 + 1 )))"
 	
 	[ "$percentage" -gt 95 ] && foreground_color='foreground="red"'
+
+	underline='underline="low" underline_color="#222222"'
 	
 	if [ "$percentage_average" -gt 90 ]; then
-		echo "<span $foreground_color background=\"#ffcccc\">$graph</span>"
+		echo "<span $foreground_color background=\"#ffcccc\" $underline>$graph</span>"
 	elif [ "$percentage_average" -gt 50 ]; then
-		echo "<span $foreground_color background=\"#ccffcc\">$graph</span>"
+		echo "<span $foreground_color background=\"#ccffcc\" $underline>$graph</span>"
 	elif [ "$percentage_average" -gt 5 ]; then
-		echo "<span $foreground_color background=\"#99ccff\">$graph</span>"
+		echo "<span $foreground_color background=\"#99ccff\" $underline>$graph</span>"
 	else
-		echo "<span $foreground_color background=\"#4d4d4d\">$graph</span>"
+		echo "<span $foreground_color background=\"#4d4d4d\" $underline>$graph</span>"
 	fi
 }
 
@@ -36,7 +32,8 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	time=$(date +%s)
 	interval=$(( time - last_time ))
 	[ $interval = 0 ] && {
-		echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$time_i3s"
+		s="<span color='#00000000'> |  </span>"
+		echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s"
 		continue
 	}
 	last_time=$time
@@ -80,29 +77,28 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	fi
 	
 	# backup (sync) indicator: in'progress, completed
-	# "  "
+	# "<span color='#00000000'> |  </span>"
 	backup=
 	
 	# system upgrade indicator: in'progress (red), system upgraded (green)
 	# show a notification if upgrade failed
 	# https://github.com/enkore/i3pystatus/wiki/Restart-reminder
-	# "  "
+	# "<span color='#00000000'> |  </span>"
 	pm=
 	
-	bat_i3s="$(echo $bat_i3s)" # this eliminates spaces at the biginning and the end
 	if [ "$bat_i3s" = null ]; then
 		bat=""
 	else
 		bat_status="$(echo "$bat_i3s" | cut -d ":" -f 1)"
 		bat_percentage="$(echo "$bat_i3s" | cut -d ":" -f 2 | sed 's/^ *//')"
 		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 + 1 )))"
-		bat="  $bat"
+		bat="<span color='#00000000'> |  </span>$bat"
 		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
 		[ "$bat_percentage" -lt 5 ] && bat="<span foreground=\"red\">$bat</span>"
 		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
 	fi
 	
-	# "$gnunet_total[$gnunet_speed] "
+	# "$gnunet_total$gnunet_speed<span color='#00000000'> |  </span>"
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
@@ -110,7 +106,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	[ -n "$active_net_device" ] && {
 		read -r internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
 		read -r internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
-		internet_total=$(( (internet_rx + internet_tx)/1000000 ))
+		internet_total=$(( (internet_rx + internet_tx)/100000 ))
 		
 		internet_speed=$(( (internet_total - last_internet_total) / interval ))
 		last_internet_total=$internet_total
@@ -123,28 +119,27 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		internet_online=1
 		[ "$internet_online" = 0 ] && internet_icon_foreground_color='foreground="red"'
 		
-		internet="<span $internet_icon_foreground_color></span>${internet_total}[$internet_speed]"
+		internet_speed="$(( internet_speed/10 )).$(( internet_speed%10 ))"
+		internet="$(( internet_total/10 ))<span $internet_icon_foreground_color></span>$internet_speed"
 	}
 	
-	wifi_i3s="$(echo $wifi_i3s)" # this eliminates spaces at the biginning and the end
 	if [ "$wifi_i3s" = null ]; then
 		wifi=""
 	elif [ "$wifi_i3s" -lt 25 ]; then
-		wifi="<span foreground=\"#ff00ff\"> </span>"
+		wifi="<span foreground=\"#ff00ff\"></span><span color='#00000000'> |  </span>"
 	elif [ "$wifi_i3s" -lt 50 ]; then
-		wifi="<span foreground=\"red\"> </span>"
+		wifi="<span foreground=\"red\"></span><span color='#00000000'> |  </span>"
 	elif [ "$wifi_i3s" -lt 75 ]; then
-		wifi="<span foreground=\"#ffffcc\"> </span>"
+		wifi="<span foreground=\"#ffffaa\"></span><span color='#00000000'> |  </span>"
 	else
-		wifi=" "
+		wifi="<span color='#00000000'> |  </span>"
 	fi
 	
-	# cell: " "
+	# cell: "<span color='#00000000'> |  </span>"
 	
-	# bluetooth: " "
+	# bluetooth: "<span color='#00000000'> |  </span>"
 	blt=
 	
-	audio_i3s="$(echo $audio_i3s)" # this eliminates spaces at the biginning and the end
 	audio_out_dev="$(echo "$audio_i3s" | cut -d ":" -f 1)"
 	if [ "$audio_out_dev" = "Dummy Output" ]; then
 		audio=""
@@ -152,37 +147,35 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		audio_out_vol="$(echo "$audio_i3s" | cut -d ":" -f 2 | sed 's/^ *//' | cut -d % -f 1 | sed 's/^0*//')"
 		[ -z "$audio_out_vol" ] && audio_out_vol=0
 		if [ "$audio_out_vol" -eq 100 ]; then
-			audio=" "
+			audio="<span color='#00000000'> |  </span>"
 		elif [ "$audio_out_vol" -eq 0 ]; then
-			audio=" "
+			audio="<span color='#00000000'> |  </span>"
 		elif [ "$audio_out_vol" -lt 10 ]; then
-			audio="<span foreground=\"red\"> </span>"
+			audio="<span foreground=\"red\"></span><span color='#00000000'> |  </span>"
 		elif [ "$audio_out_vol" -lt 20 ]; then
-			audio="<span foreground=\"#ffffcc\"> </span>"
+			audio="<span foreground=\"#ffffcc\"></span><span color='#00000000'> |  </span>"
 		elif [ "$audio_out_vol" -lt 50 ]; then
-			audio="<span foreground=\"#ffffcc\"> </span>"
+			audio="<span foreground=\"#ffffcc\"></span><span color='#00000000'> |  </span>"
 		else
-			audio="<span foreground=\"#ffffcc\"> </span>"
+			audio="<span foreground=\"#ffffcc\"></span><span color='#00000000'> |  </span>"
 		fi
 	fi
 	
-	# mic: " "
+	# mic: "<span color='#00000000'> |  </span>"
 	# visible only when it's active; green if volume is full, yellow and red if volume is low
-	# mic muted: " "
+	# mic muted: "<span color='#00000000'> |  </span>"
 	# https://github.com/xenomachina/i3pamicstatus
 	#audio_In_dev=
 	#[ "$audio_In_dev" = "Dummy Input" ] && mic=""
 	
-	# cam: "<span foreground=\"green\"> </span>"
+	# cam: "<span foreground=\"green\"></span><span color='#00000000'> |  </span>"
 	# visible only when it's active
 	cam=""
 	
 	# screen recording indicator:
 	scr=""
-	scrrec="$(echo $scrrec)" # this eliminates spaces at the biginning and the end
-	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤ </span>"
+	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span><span color='#00000000'> |  </span>"
 	
-	time_i3s="$(echo $time_i3s)" # this eliminates spaces at the biginning and the end
-	
-	echo " $cpu$mem $disk$backup$pm$bat $gnunet$internet $wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
+	s="<span color='#00000000'> |  </span>"
+	echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
 done

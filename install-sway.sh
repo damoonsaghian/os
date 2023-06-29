@@ -13,6 +13,7 @@ cp /mnt/sway.conf /mnt/sway-status.sh /usr/local/share/
 echo -n 'general {
 	output_format = "none"
 	interval = 2
+	separator="|"
 }
 order += "cpu_usage"
 order += "memory"
@@ -45,7 +46,7 @@ run_watch scrrec {
 	format = "%status"
 }
 time {
-	format = "%Y-%m-%d %a %p %I:%M"
+	format = "%Y-%m-%d  %a  %p  %I:%M"
 }
 ' > /usr/local/share/i3status.conf
 
