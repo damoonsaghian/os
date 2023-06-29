@@ -5,18 +5,16 @@ graph() {
 	
 	graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇ ▇ █" | cut -d " " -f $(( percentage/10 + 1 )))"
 	
-	[ "$percentage" -gt 95 ] && foreground_color='foreground="red"'
-
 	underline='underline="low" underline_color="#222222"'
 	
 	if [ "$percentage_average" -gt 90 ]; then
-		echo "<span $foreground_color background=\"#ffcccc\" $underline>$graph</span>"
+		echo "<span foreground=\"#ff0000\" background=\"#4d4d4d\" $underline>$graph</span>"
 	elif [ "$percentage_average" -gt 50 ]; then
-		echo "<span $foreground_color background=\"#ccffcc\" $underline>$graph</span>"
+		echo "<span foreground=\"#ffff00\" background=\"#4d4d4d\" $underline>$graph</span>"
 	elif [ "$percentage_average" -gt 5 ]; then
-		echo "<span $foreground_color background=\"#99ccff\" $underline>$graph</span>"
+		echo "<span foreground=\"#00ff00\" background=\"#4d4d4d\" $underline>$graph</span>"
 	else
-		echo "<span $foreground_color background=\"#4d4d4d\" $underline>$graph</span>"
+		echo "<span background=\"#4d4d4d\" $underline>$graph</span>"
 	fi
 }
 
@@ -32,7 +30,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	time=$(date +%s)
 	interval=$(( time - last_time ))
 	[ $interval = 0 ] && {
-		s="<span color='#00000000'> |  </span>"
+		s="<span color='#222222'> | </span>"
 		echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s"
 		continue
 	}
@@ -77,13 +75,13 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	fi
 	
 	# backup (sync) indicator: in'progress, completed
-	# "<span color='#00000000'> |  </span>"
+	# "<span color='#222222'> | </span>"
 	backup=
 	
 	# system upgrade indicator: in'progress (red), system upgraded (green)
 	# show a notification if upgrade failed
 	# https://github.com/enkore/i3pystatus/wiki/Restart-reminder
-	# "<span color='#00000000'> |  </span>"
+	# "<span color='#222222'> | </span>"
 	pm=
 	
 	if [ "$bat_i3s" = null ]; then
@@ -92,13 +90,13 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		bat_status="$(echo "$bat_i3s" | cut -d ":" -f 1)"
 		bat_percentage="$(echo "$bat_i3s" | cut -d ":" -f 2 | sed 's/^ *//')"
 		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 + 1 )))"
-		bat="<span color='#00000000'> |  </span>$bat"
+		bat="<span color='#222222'> | </span>$bat"
 		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
 		[ "$bat_percentage" -lt 5 ] && bat="<span foreground=\"red\">$bat</span>"
 		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
 	fi
 	
-	# "$gnunet_total$gnunet_speed<span color='#00000000'> |  </span>"
+	# "$gnunet_total$gnunet_speed<span color='#222222'> | </span>"
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
@@ -120,24 +118,25 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		[ "$internet_online" = 0 ] && internet_icon_foreground_color='foreground="red"'
 		
 		internet_speed="$(( internet_speed/10 )).$(( internet_speed%10 ))"
-		internet="$(( internet_total/10 ))<span $internet_icon_foreground_color></span>$internet_speed"
+		internet_total="$(( internet_total/10000 )).$(( (internet_total/1000)%10 ))"
+		internet="$internet_total<span $internet_icon_foreground_color></span>$internet_speed"
 	}
 	
 	if [ "$wifi_i3s" = null ]; then
 		wifi=""
 	elif [ "$wifi_i3s" -lt 25 ]; then
-		wifi="<span foreground=\"#ff00ff\"></span><span color='#00000000'> |  </span>"
+		wifi="<span foreground=\"#ff0000\"></span><span color='#222222'> | </span>"
 	elif [ "$wifi_i3s" -lt 50 ]; then
-		wifi="<span foreground=\"red\"></span><span color='#00000000'> |  </span>"
-	elif [ "$wifi_i3s" -lt 75 ]; then
-		wifi="<span foreground=\"#ffffaa\"></span><span color='#00000000'> |  </span>"
+		wifi="<span foreground=\"#ff7700\"></span><span color='#222222'> | </span>"
+	elif [ "$wifi_i3s" -lt 70 ]; then
+		wifi="<span foreground=\"#ffff00\"></span><span color='#222222'> | </span>"
 	else
-		wifi="<span color='#00000000'> |  </span>"
+		wifi="<span color='#222222'> | </span>"
 	fi
 	
-	# cell: "<span color='#00000000'> |  </span>"
+	# cell: "<span color='#222222'> | </span>"
 	
-	# bluetooth: "<span color='#00000000'> |  </span>"
+	# bluetooth: "<span color='#222222'> | </span>"
 	blt=
 	
 	audio_out_dev="$(echo "$audio_i3s" | cut -d ":" -f 1)"
@@ -147,35 +146,35 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		audio_out_vol="$(echo "$audio_i3s" | cut -d ":" -f 2 | sed 's/^ *//' | cut -d % -f 1 | sed 's/^0*//')"
 		[ -z "$audio_out_vol" ] && audio_out_vol=0
 		if [ "$audio_out_vol" -eq 100 ]; then
-			audio="<span color='#00000000'> |  </span>"
+			audio="<span color='#222222'> | </span>"
 		elif [ "$audio_out_vol" -eq 0 ]; then
-			audio="<span color='#00000000'> |  </span>"
+			audio="<span color='#222222'> | </span>"
 		elif [ "$audio_out_vol" -lt 10 ]; then
-			audio="<span foreground=\"red\"></span><span color='#00000000'> |  </span>"
+			audio="<span foreground=\"red\"></span><span color='#222222'> | </span>"
 		elif [ "$audio_out_vol" -lt 20 ]; then
-			audio="<span foreground=\"#ffffcc\"></span><span color='#00000000'> |  </span>"
+			audio="<span foreground=\"#ffffcc\"></span><span color='#222222'> | </span>"
 		elif [ "$audio_out_vol" -lt 50 ]; then
-			audio="<span foreground=\"#ffffcc\"></span><span color='#00000000'> |  </span>"
+			audio="<span foreground=\"#ffffcc\"></span><span color='#222222'> | </span>"
 		else
-			audio="<span foreground=\"#ffffcc\"></span><span color='#00000000'> |  </span>"
+			audio="<span foreground=\"#ffffcc\"></span><span color='#222222'> | </span>"
 		fi
 	fi
 	
-	# mic: "<span color='#00000000'> |  </span>"
+	# mic: "<span color='#222222'> | </span>"
 	# visible only when it's active; green if volume is full, yellow and red if volume is low
-	# mic muted: "<span color='#00000000'> |  </span>"
+	# mic muted: "<span color='#222222'> | </span>"
 	# https://github.com/xenomachina/i3pamicstatus
 	#audio_In_dev=
 	#[ "$audio_In_dev" = "Dummy Input" ] && mic=""
 	
-	# cam: "<span foreground=\"green\"></span><span color='#00000000'> |  </span>"
+	# cam: "<span foreground=\"green\"></span><span color='#222222'> | </span>"
 	# visible only when it's active
 	cam=""
 	
 	# screen recording indicator:
 	scr=""
-	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span><span color='#00000000'> |  </span>"
+	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span><span color='#222222'> | </span>"
 	
-	s="<span color='#00000000'> |  </span>"
+	s="<span color='#222222'> | </span>"
 	echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
 done
