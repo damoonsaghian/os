@@ -42,7 +42,7 @@ answer="$(printf "install a new system\nrepair an existing system" | fzy -p "sel
 		backup_dir_path="/mnt/backup$(date '+%s')"
 		mkdir "$backup_dir_path"
 		mv /mnt/* "$backup_dir_path/"
-		debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
+		debootstrap --variant=minbase --include="init,btrfs-progs,udev,netbase,ca-certificates,usr-is-merged" \
 			--components=main,contrib,non-free-firmware stable /mnt
 	}
 
