@@ -45,7 +45,7 @@ answer="$(printf "install a new system\nrepair an existing system" | fzy -p "sel
 		debootstrap --variant=minbase --include="init,btrfs-progs,udev,netbase,ca-certificates,usr-is-merged" \
 			--components=main,contrib,non-free-firmware stable /mnt
 	}
-
+	
 	genfstab -U /mnt > /mnt/etc/fstab
 	mount --bind "$directory_of_this_file" /mnt/mnt
 	arch-chroot /mnt sh /mnt/install-chroot.sh

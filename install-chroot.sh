@@ -117,6 +117,7 @@ echo 'LANG=C.UTF-8' > /etc/default/locale
 
 . /mnt/install-sway.sh
 
+apt-get -qq install eject
 # allow udisks2 to mount all devices except when it's an EFI partition
 echo -n 'polkit.addRule(function(action, subject) {
 	function isNotEfiPartition(devicePath) {
