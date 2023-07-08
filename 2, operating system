@@ -18,9 +18,9 @@ then run this in a terminal (note that s390x and mips architectures are not supp
 ; sudo sh <path-to-this-project-directory>/install.sh
 
 in the installed system:
-press "alt+alt" to open app launcher
-press and release "alt" to switch between the two most recent apps
-press "alt+space" or "alt+tab" to switch between windows in a workspace
+press "alt+space" to open app launcher
+press "alt+alt_right" or "alt+tab" to switch between the most recent apps
+press "alt+alt_left" or "alt+`" to switch between windows in a workspace
 
 in app launcher, press "alt+alt" again to open session manager, in which you can:
 	lock the session, suspend, exit, reboot, or poweroff
