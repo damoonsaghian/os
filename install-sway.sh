@@ -1,4 +1,4 @@
-apt-get -qq install sway swayidle wtype i3status fonts-fork-awesome xwayland fuzzel hicolor-icon-theme foot
+apt-get -qq install sway swayidle i3status fonts-fork-awesome xwayland fuzzel hicolor-icon-theme foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
