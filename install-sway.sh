@@ -46,7 +46,7 @@ run_watch scrrec {
 	format = "%status"
 }
 time {
-	format = "%Y-%m-%d  %a  %p  %I:%M"
+	format = "%Y-%m-%d %a %p %I:%M"
 }
 ' > /usr/local/share/i3status.conf
 
@@ -112,7 +112,7 @@ __EOF__
 
 cat <<'__EOF__' > /usr/local/bin/sway-apps
 #!/bin/sh
-swaymsg workspace "w$(echo -n "$@" | cut -d " " -f1 |  md5sum)"
+swaymsg workspace "w$(echo -n "$@" | cut -d " " -f1 | md5sum | cut -d " " -f1)"
 swaymsg "[con_id=__focused__] focus" || swaymsg exec -- $@
 __EOF__
 chmod +x /usr/local/bin/sway-apps
