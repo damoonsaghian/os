@@ -31,7 +31,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	interval=$(( time - last_time ))
 	[ $interval = 0 ] && {
 		s="<span color='#222222'> | </span>"
-		echo "$s$cpu $mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s"
+		echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s"
 		continue
 	}
 	last_time=$time
@@ -176,5 +176,5 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span><span color='#222222'> | </span>"
 	
 	s="<span color='#222222'> | </span>"
-	echo "$s$cpu $mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
+	echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
 done
