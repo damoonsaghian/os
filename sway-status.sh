@@ -3,18 +3,18 @@ graph() {
 	local percentage="$1"
 	local percentage_average="$2"
 	
-	graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇ ▇ █" | cut -d " " -f $(( percentage/10 + 1 )))"
+	graph="$(echo "▁ ▁ ▂ ▃ ▄ ▅ ▅ ▆ ▇ ▇ █" | cut -d " " -f $(( percentage/10 + 1 )))"
 	
 	underline='underline="low" underline_color="#222222"'
 	
 	if [ "$percentage_average" -gt 90 ]; then
 		echo "<span foreground=\"#ff0000\" background=\"#4d4d4d\" $underline>$graph</span>"
-	elif [ "$percentage_average" -gt 50 ]; then
+	elif [ "$percentage_average" -gt 80 ]; then
 		echo "<span foreground=\"#ffff00\" background=\"#4d4d4d\" $underline>$graph</span>"
-	elif [ "$percentage_average" -gt 5 ]; then
-		echo "<span foreground=\"#00ff00\" background=\"#4d4d4d\" $underline>$graph</span>"
-	else
+	elif [ "$percentage" -gt 5 ] || [ "$percentage_average" -gt 10 ]; then
 		echo "<span background=\"#4d4d4d\" $underline>$graph</span>"
+	else
+		echo "<span foreground=\"#4d4d4d\" background=\"#4d4d4d\" $underline>$graph</span>"
 	fi
 }
 
@@ -40,13 +40,13 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	
 	cpu_usage="$(echo $cpu_usage | cut -d % -f 1 | cut -d . -f 1 | sed 's/^0*//')"
 	[ -z "$cpu_usage" ] && cpu_usage=0
-	cpu="$(graph "$cpu_usage" "$cpu_usage_average")"
-	cpu_usage_average=$(( (cpu_usage + cpu_usage_average*lmaf) / (lmaf+1) ))
+	cpu="$(graph "$cpu_usage" "$(( cpu_usage_average/100 ))")"
+	cpu_usage_average=$(( (cpu_usage*100 + cpu_usage_average*lmaf) / (lmaf+1) ))
 	
 	mem_usage="$(echo $mem_usage | cut -d % -f 1 | cut -d . -f 1 | sed 's/^0*//')"
 	[ -z "$mem_usage" ] && mem_usage=0
-	mem="$(graph "$mem_usage" "$mem_usage_average")"
-	mem_usage_average=$(( (mem_usage + mem_usage_average*lmaf) / (lmaf+1) ))
+	mem="$(graph "$mem_usage" "$(( mem_usage_average/100 ))")"
+	mem_usage_average=$(( (mem_usage*100 + mem_usage_average*lmaf) / (lmaf+1) ))
 	
 	disk=""
 	# if writing to disk, disk_w=30
