@@ -96,7 +96,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
 	fi
 	
-	# "$gnunet_total$gnunet_speed<span color='#222222'> | </span>"
+	# "$gnunet_total  $gnunet_speed<span color='#222222'> | </span>"
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
@@ -119,7 +119,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		
 		internet_speed="$(( internet_speed/10 )).$(( internet_speed%10 ))"
 		internet_total="$(( internet_total/10000 )).$(( (internet_total/1000)%10 ))"
-		internet="$internet_total<span $internet_icon_foreground_color></span>$internet_speed"
+		internet="$internet_total<span $internet_icon_foreground_color>  </span>$internet_speed"
 	}
 	
 	if [ "$wifi_i3s" = null ]; then
