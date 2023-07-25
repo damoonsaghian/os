@@ -7,6 +7,12 @@ APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
 ' > /etc/apt/apt.conf.d/99_norecommends
 
+echo -n 'deb http://deb.debian.org/debian stable main contrib non-free-firmware
+deb http://deb.debian.org/debian stable-updates main contrib non-free-firmware
+deb http://deb.debian.org/debian-security stable-security main contrib non-free-firmware
+' > /etc/apt/sources.list
+apt-get -qq update
+
 case "$arch" in
 ppc64el) apt-get -qq install "linux-image-powerpc64le" ;;
 i386)
