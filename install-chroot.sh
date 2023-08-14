@@ -108,7 +108,7 @@ RouteMetric=700
 systemctl enable systemd-networkd
 apt-get -qq install systemd-resolved systemd-timesyncd
 
-apt-get -qq install pipewire-audio
+apt-get -qq install pipewire-audio pipewire-v4l2
 mkdir -p /etc/wireplumber/main.lua.d
 echo 'device_defaults.properties = {
 	["default-volume"] = 1.0,
