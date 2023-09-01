@@ -48,27 +48,27 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	mem="$(graph "$mem_usage" "$(( mem_usage_average/100 ))")"
 	mem_usage_average=$(( (mem_usage*100 + mem_usage_average*lmaf) / (lmaf+1) ))
 	
-	disk=""
+	disk=
 	# if writing to disk, disk_w=30
 	# if reading from disk, disk_r=30
 	# https://packages.debian.org/sid/sysstat
 	# https://unix.stackexchange.com/questions/55212/how-can-i-monitor-disk-io
 	if [ -n "$disk_w" ]; then
 		if [ "$disk_w" -eq 30 ]; then
-			disk="<span foreground=\"red\"></span>"
+			disk="<span color='#222222'> | </span><span foreground=\"red\"></span>"
 		else
-			disk="<span foreground=\"#ffcccc\"></span>"
+			disk="<span color='#222222'> | </span><span foreground=\"#ffcccc\"></span>"
 		fi
 		disk_w=$(( disk_w - interval ))
 		[ "$disk_w" -le 1 ] && disk_w=""
 	fi
 	if [ -n "$disk_r" ]; then
 		if [ "$disk_r" -eq 30 ]; then
-			disk="<span foreground=\"#0099ff\"></span>"
+			disk="<span color='#222222'> | </span><span foreground=\"#0099ff\"></span>"
 			[ "$disk_w" -eq 28 ] && disk="<span foreground=\"#ff00ff\"></span>"
 		else
-			disk="<span foreground=\"#ccffff\"></span>"
-			[ -n "$disk_w" ] && disk="<span foreground=\"#ffccff\"></span>"
+			disk="<span color='#222222'> | </span><span foreground=\"#ccffff\"></span>"
+			[ -n "$disk_w" ] && disk="<span foreground=\"#ffccff\"></span>"
 		fi
 		disk_r=$(( disk_r - interval ))
 		[ "$disk_r" -le 1 ] && disk_r=""
@@ -128,7 +128,7 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 		wifi="<span foreground=\"#ff0000\"></span><span color='#222222'> | </span>"
 	elif [ "$wifi_i3s" -lt 50 ]; then
 		wifi="<span foreground=\"#ff7700\"></span><span color='#222222'> | </span>"
-	elif [ "$wifi_i3s" -lt 70 ]; then
+	elif [ "$wifi_i3s" -lt 75 ]; then
 		wifi="<span foreground=\"#ffff00\"></span><span color='#222222'> | </span>"
 	else
 		wifi="<span color='#222222'> | </span>"
@@ -176,6 +176,6 @@ while IFS="|" read -r cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time
 	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤</span><span color='#222222'> | </span>"
 	
 	s="<span color='#222222'> | </span>"
-	echo "$s$cpu$mem$s$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s" \
+	echo "$s$cpu$mem$disk$backup$pm$bat$s$gnunet$internet$s$wifi$cell$blt$audio$mic$cam$scr$time_i3s" \
 	|| exit 1
 done

@@ -4,30 +4,23 @@ in theory we can live without a kernel (an idea sometimes called a library opera
 	and it can be useful for some use cases (like IoT devices),
 	but a kernel based operating system makes developing and testing programs, much easier
 Linux is a highly developed, constantly evolving, open'source kernel
-
 using Debian we can easily setup a Linux based operating system
-anything which needs a kernel'based operating system can use Debian:
-, it supports a wide range of hardware architectures
-, it's suitable for systems with limited resources
-, the stable release provides a highly tested system for sensitive use cases
 
 boot to a Debian live system
 if Debian live is not available for an architecture, as a workaround,
 	intall Debian on a removable storage device, and use that as a live system
 then run this in a terminal (note that s390x and mips architectures are not supported):
-; sudo sh <path-to-this-project-directory>/install.sh
+; sudo sh install.sh
 
 in the installed system:
-press "alt+space" to open app launcher
-press "alt+alt_right" or "alt+tab" to switch between the most recent apps
-press "alt+alt_left" or "alt+`" to switch between windows in a workspace
-
-in app launcher, press "alt+alt" again to open session manager, in which you can:
-	lock the session, suspend, exit, reboot, or poweroff
+press "super" (mod+mod) or "alt+space" to open a list of installed apps
+press "super+super" or "alt+tab" to switch between most recent apps
+press "super+space" or "alt+grave" to switch between windows of an app
+press "super+," or "alt+esc" to close a window
 
 a terminal emulator application is installed by default
 "system" is a command'line program which can be used to:
-	manage connections, set timezone, change passwords, and manage installed packages
+	manage connections, set timezone, change passwords, or manage installed packages
 
 implementing atomic upgrade does not worth the effort, because to have a really fail'safe system,
 	redundant backups are necessary anyway

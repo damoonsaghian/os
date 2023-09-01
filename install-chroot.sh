@@ -67,6 +67,13 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' > \
 	/etc/udev/rules.d/80-install-firmware.rules
 
+apt-get -qq install pipewire-audio pipewire-v4l2
+mkdir -p /etc/wireplumber/main.lua.d
+echo 'device_defaults.properties = {
+	["default-volume"] = 1.0,
+	["default-input-volume"] = 1.0,
+}' > /etc/wireplumber/main.lua.d/51-default-volume.lua
+
 echo -n '[Match]
 Name=en*
 Name=eth*
@@ -108,35 +115,8 @@ RouteMetric=700
 systemctl enable systemd-networkd
 apt-get -qq install systemd-resolved systemd-timesyncd
 
-apt-get -qq install pipewire-audio pipewire-v4l2
-mkdir -p /etc/wireplumber/main.lua.d
-echo 'device_defaults.properties = {
-	["default-volume"] = 1.0,
-	["default-input-volume"] = 1.0,
-}' > /etc/wireplumber/main.lua.d/51-default-volume.lua
-
-echo 'LANG=C.UTF-8' > /etc/default/locale
-
-. /mnt/install-user.sh
-
 . /mnt/install-system.sh
-
+. /mnt/install-user.sh
 . /mnt/install-sway.sh
-
-apt-get -qq install eject
-# allow udisks2 to mount all devices except when it's an EFI partition
-echo -n 'polkit.addRule(function(action, subject) {
-	function isNotEfiPartition(devicePath) {
-		var partitionType = polkit.spawn(["lsblk", "--noheadings", "-o", "PARTTYPENAME", devicePath]);
-		if (partitionType.indexOf("EFI System") === -1) return true;
-	}
-	if (subject.local && subject.active &&
-		action.id === "org.freedesktop.udisks2.filesystem-mount-system" &&
-		isNotEfiPartition(action.lookup("device"))
-	) {
-		return polkit.Result.YES;
-	}
-});
-' > /etc/polkit-1/rules.d/49-udisks.rules
 
 apt-get -qq install jina codev 2>/dev/null || true

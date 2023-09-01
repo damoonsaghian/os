@@ -14,8 +14,6 @@ command -v arch-chroot > /dev/null 2>&1 || apt-get -qq install arch-install-scri
 
 umount --recursive --quiet /mnt || true
 
-directory_of_this_file="$(dirname "$0")"
-
 answer="$(printf "install a new system\nrepair an existing system" | fzy -p "select an option: ")"
 
 [ "$answer" = "repair an existing system" ] && {
@@ -47,8 +45,8 @@ answer="$(printf "install a new system\nrepair an existing system" | fzy -p "sel
 	}
 	
 	genfstab -U /mnt > /mnt/etc/fstab
-	mount --bind "$directory_of_this_file" /mnt/mnt
-	arch-chroot /mnt sh /mnt/install-chroot.sh
+	mount --bind "$(dirname "$0")" /mnt/mnt
+	arch-chroot /mnt sh /mnt/os/install-chroot.sh
 	
 	echo; echo -n "the system on \"$target_device\" repaired successfully"
 	answer="$(printf "no\nyes" | fzy -p "reboot the system? ")"
@@ -85,20 +83,20 @@ else
 	esac
 fi
 
-second_partition_type=linux
+second_part_type=linux
 case "$arch" in
-amd64) second_partition_type=4f68bce3-e8cd-4db1-96e7-fbcaf984b709 ;;
-i386) second_partition_type=44479540-f297-41b2-9af7-d131d5f0458a ;;
-arm64) second_partition_type=b921b045-1df0-41c3-af44-4c6f280d3fae ;;
-armel|armhf) second_partition_type=69dad710-2ce4-4e3c-b16c-21a1d49abed3 ;;
-ppc64el) second_partition_type=c31c45e6-3f39-412e-80fb-4809c4980599 ;;
-riscv64) second_partition_type=72ec70a6-cf74-40e6-bd49-4bda08e8f224 ;;
+amd64) second_part_type=4f68bce3-e8cd-4db1-96e7-fbcaf984b709 ;;
+i386) second_part_type=44479540-f297-41b2-9af7-d131d5f0458a ;;
+arm64) second_part_type=b921b045-1df0-41c3-af44-4c6f280d3fae ;;
+armel|armhf) second_part_type=69dad710-2ce4-4e3c-b16c-21a1d49abed3 ;;
+ppc64el) second_part_type=c31c45e6-3f39-412e-80fb-4809c4980599 ;;
+riscv64) second_part_type=72ec70a6-cf74-40e6-bd49-4bda08e8f224 ;;
 esac
 
 command -v sfdisk > /dev/null 2>&1 || apt-get -qq install fdisk
 sfdisk --quiet --wipe always --label $part_label "/dev/$target_device" <<__EOF__
 1M,$first_part_size,$first_part_type
-,,$second_partition_type
+,,$second_part_type
 __EOF__
 
 target_partitions="$(lsblk --list --noheadings -o PATH "/dev/$target_device")"
@@ -129,7 +127,8 @@ debootstrap --variant=minbase --include="init,btrfs-progs,udev,netbase,ca-certif
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
 genfstab -U /mnt > /mnt/etc/fstab
-mount --bind "$directory_of_this_file" /mnt/mnt
+echo 'LANG=C.UTF-8' > /mnt/etc/default/locale
+mount --bind "$(dirname "$0")" /mnt/mnt
 arch-chroot /mnt sh /mnt/install-chroot.sh
 
 # arch-chroot copies /media into the new system; it must not; so:

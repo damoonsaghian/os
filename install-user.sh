@@ -77,6 +77,21 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.lock.policy
 
+# allow udisks2 to mount all devices except when it's an EFI partition
+echo -n 'polkit.addRule(function(action, subject) {
+	function isNotEfiPartition(devicePath) {
+		var partitionType = polkit.spawn(["lsblk", "--noheadings", "-o", "PARTTYPENAME", devicePath]);
+		if (partitionType.indexOf("EFI System") === -1) return true;
+	}
+	if (subject.local && subject.active &&
+		action.id === "org.freedesktop.udisks2.filesystem-mount-system" &&
+		isNotEfiPartition(action.lookup("device"))
+	) {
+		return polkit.Result.YES;
+	}
+});
+' > /etc/polkit-1/rules.d/49-udisks.rules
+
 # console level keybinding: when "F8" or "XF86Lock" is pressed: /usr/local/bin/lock
 
 # to prevent BadUSB, when a new input device is connected lock the session

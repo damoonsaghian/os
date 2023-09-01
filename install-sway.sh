@@ -1,14 +1,19 @@
-apt-get -qq install sway swayidle i3status fonts-fork-awesome xwayland fuzzel hicolor-icon-theme foot
+apt-get -qq install sway swayidle xwayland i3status fonts-fork-awesome fuzzel hicolor-icon-theme foot
 
-echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+# this way, Sway's config can't be changed by a normal user
+# it means that, swayidle can't be disabled by a normal user (see sway.conf)
+echo -n '# run sway (if this script is not called by root or a display manager, and this is the first tty)
+if [ ! "$(id -u)" = 0 ] && [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
 	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
 	exec sway -c /usr/local/share/sway.conf
 fi
 ' > /etc/profile.d/zz-sway.sh
-# this way, sway config can't be changed by a normal user
 
 cp /mnt/sway.conf /mnt/sway-status.sh /usr/local/share/
+
+echo -n 'workspace_name="$(swaymsg -p -t get_workspaces | grep "(focused)" | cut -d " " -f 2)"
+swaymsg "rename workspace \"$workspace_name\" to 1; rename workspace 1 to \"$workspace_name\""
+' > /usr/local/share/sway-preswitch.sh
 
 echo -n 'general {
 	output_format = "none"
@@ -87,62 +92,7 @@ echo -n '<?xml version="1.0"?>
 </fontconfig>
 ' > /etc/fonts/local.conf
 
-cat <<'__EOF__' > /usr/local/share/sway-session.sh
-# close previous instance of fuzzel, if any
-swaymsg "[con_id=__focused__] focus" || swaymsg "workspace 1; workspace back_and_forth"
-printf 'lock\nsuspend\nexit\nreboot\npoweroff' | fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
-	read answer
-	case $answer in
-	lock) /usr/local/bin/lock ;;
-	suspend) systemctl suspend ;;
-	exit) swaymsg exit ;;
-	reboot) systemctl reboot ;;
-	poweroff) systemctl poweroff ;;
-	esac
-}
-__EOF__
-
-cat <<'__EOF__' > /usr/local/share/sway-apps.sh
-# close previous instance of fuzzel, if any
-swaymsg "[con_id=__focused__] focus" || swaymsg "workspace 1; workspace back_and_forth"
-swaymsg mode sway_apps
-fuzzel --launch-prefix=/usr/local/bin/sway-apps --config=/usr/local/share/fuzzel.ini
-swaymsg mode default
-__EOF__
-
-cat <<'__EOF__' > /usr/local/bin/sway-apps
-#!/bin/sh
-swaymsg workspace "w$(echo -n "$@" | cut -d " " -f1 | md5sum | cut -d " " -f1)"
-swaymsg "[con_id=__focused__] focus" || swaymsg exec -- $@
-__EOF__
-chmod +x /usr/local/bin/sway-apps
-
-echo -n 'font=sans:size=12.5
-prompt=" "
-fields=name
-terminal=foot
-horizontal-pad=20
-vertical-pad=20
-image-size-ratio=0
-line-height=38
-layer=overlay
-[colors]
-background=222222ff
-text=eeeeeeff
-match=eeeeeeff
-selection=4285F4ff
-selection-text=ffffffff
-selection-match=ffffffff
-border=ffffff22
-[border]
-width=1     
-radius=0
-[key-bindings]
-execute=Return KP_Enter space
-cancel=Control+q Escape
-' > /usr/local/share/fuzzel.ini
-
-cat <<'__EOF__' > /usr/local/share/foot.ini
+cat <<'__EOF__' > /usr/local/share/foot/foot.ini
 font=monospace:size=10
 [scrollback]
 indicator-position=none
@@ -166,7 +116,7 @@ extend-to-next-whitespace = Shift+space
 \x03 = Escape
 [colors]
 background=222222
-foreground=eeeeee
+foreground=EEEEEE
 regular0=403E41
 regular1=FF6188
 regular2=A9DC76
@@ -187,17 +137,61 @@ selection-background=555555
 selection-foreground=dddddd
 __EOF__
 
-echo -n '#!/bin/sh
-footclient --no-wait || foot
-' > /usr/local/bin/terminal
-chmod +x /usr/local/bin/terminal
+echo -n 'font=sans:size=12.5
+prompt=" "
+fields=name
+terminal=foot
+horizontal-pad=20
+vertical-pad=20
+image-size-ratio=0
+line-height=38
+layer=overlay
+[colors]
+background=222222ff
+text=eeeeeeff
+match=eeeeeeff
+selection=4285F4ff
+selection-text=ffffffff
+selection-match=ffffffff
+border=ffffff22
+[border]
+width=1
+radius=0
+[key-bindings]
+cancel=Control+q Escape
+' > /usr/local/share/fuzzel.ini
+
+cat <<'__EOF__' > /usr/local/bin/sway-apps
+#!/bin/sh
+if [ "$@" = session-manager ]; then
+	answer="$(printf "lock\nsuspend\nexit\nreboot\npoweroff" | fuzzel --dmenu --config=/usr/local/share/fuzzel.ini)"
+	case $answer in
+	lock) /usr/local/bin/lock ;;
+	suspend) systemctl suspend ;;
+	exit) swaymsg exit ;;
+	reboot) systemctl reboot ;;
+	poweroff) systemctl poweroff ;;
+	esac
+else
+	swaymsg workspace "w$(echo -n "$@" | cut -d " " -f1 | md5sum | cut -d " " -f1)"
+	swaymsg "[con_id=__focused__] focus" || swaymsg exec -- $@
+fi
+__EOF__
+chmod +x /usr/local/bin/sway-apps
+
+mkdir -p /usr/local/share/applications
+echo -n '[Desktop Entry]
+Type=Application
+Name=​session manager
+Exec=session-manager
+' > /usr/local/share/applications/session-manager.desktop
 
 mkdir -p /usr/local/share/applications
 echo -n '[Desktop Entry]
 Type=Application
 Name=Terminal
-Icon=terminal
-Exec=/usr/local/bin/terminal
+Icon=foot
+Exec=XDG_CONFIG_HOME=/usr/local/share foot
 StartupNotify=true
 ' > /usr/local/share/applications/terminal.desktop
 echo -n '[Desktop Entry]
@@ -207,30 +201,3 @@ NoDisplay=true
 ' > /usr/local/share/applications/foot.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/footclient.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/foot-server.desktop
-
-mkdir -p /usr/local/share/icons/hicolor/scalable/apps
-echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<svg height="128px" viewBox="0 0 128 128" width="128px">
-	<linearGradient id="a" gradientUnits="userSpaceOnUse" x1="11.999989" x2="115.999989" y1="64" y2="64">
-		<stop offset="0" stop-color="#3d3846"/>
-		<stop offset="0.05" stop-color="#77767b"/>
-		<stop offset="0.1" stop-color="#5e5c64"/>
-		<stop offset="0.899999" stop-color="#504e56"/>
-		<stop offset="0.95" stop-color="#77767b"/>
-		<stop offset="1" stop-color="#3d3846"/>
-	</linearGradient>
-	<linearGradient id="b" gradientUnits="userSpaceOnUse" x1="12" x2="112.041023" y1="60" y2="80.988281">
-		<stop offset="0" stop-color="#77767b"/>
-		<stop offset="0.384443" stop-color="#9a9996"/>
-		<stop offset="0.720567" stop-color="#77767b"/>
-		<stop offset="1" stop-color="#68666f"/>
-	</linearGradient>
-	<path d="m 20 22 h 88 c 4.417969 0 8 3.582031 8 8 v 78 c 0 4.417969 -3.582031 8 -8 8 h -88 c -4.417969 0 -8 -3.582031 -8 -8 v -78 c 0 -4.417969 3.582031 -8 8 -8 z m 0 0" fill="url(#a)"/>
-	<path d="m 20 12 h 88 c 4.417969 0 8 3.582031 8 8 v 80 c 0 4.417969 -3.582031 8 -8 8 h -88 c -4.417969 0 -8 -3.582031 -8 -8 v -80 c 0 -4.417969 3.582031 -8 8 -8 z m 0 0" fill="url(#b)"/>
-	<path d="m 20 14 h 88 c 3.3125 0 6 2.6875 6 6 v 80 c 0 3.3125 -2.6875 6 -6 6 h -88 c -3.3125 0 -6 -2.6875 -6 -6 v -80 c 0 -3.3125 2.6875 -6 6 -6 z m 0 0" fill="#241f31"/>
-	<g fill="#62c9ea">
-		<path d="m 46.011719 40.886719 l -14.011719 -7.613281 v 4.726562 l 9.710938 4.628906 v 0.144532 l -9.710938 5.226562 v 4.726562 l 14.011719 -8.210937 z m 0 0"/>
-		<path d="m 50 56 v 4 h 16 v -4 z m 0 0"/>
-	</g>
-</svg>
-' > /usr/local/share/icons/hicolor/scalable/apps/terminal.svg
