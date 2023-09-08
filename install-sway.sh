@@ -92,51 +92,6 @@ echo -n '<?xml version="1.0"?>
 </fontconfig>
 ' > /etc/fonts/local.conf
 
-cat <<'__EOF__' > /usr/local/share/foot/foot.ini
-font=monospace:size=10
-[scrollback]
-indicator-position=none
-[cursor]
-blink=yes
-[key-bindings]
-scrollback-up-page = Page_Up
-scrollback-down-page = Page_Down
-clipboard-copy = Control+c XF86Copy
-clipboard-paste = Control+v XF86Paste
-spawn-terminal = Control+n
-search-start = Control+f
-[search-bindings]
-cancel = Escape
-commit = none
-find-next = Return
-find-prev = Shift+Return
-extend-to-next-whitespace = Shift+space
-[text-bindings]
-# make escape to act like ctrl+c
-\x03 = Escape
-[colors]
-background=222222
-foreground=EEEEEE
-regular0=403E41
-regular1=FF6188
-regular2=A9DC76
-regular3=FFD866
-regular4=FC9867
-regular5=AB9DF2
-regular6=78DCE8
-regular7=FCFCFA
-bright0=727072
-bright1=FF6188
-bright2=A9DC76
-bright3=FFD866
-bright4=FC9867
-bright5=AB9DF2
-bright6=78DCE8
-bright7=FCFCFA
-selection-background=555555
-selection-foreground=dddddd
-__EOF__
-
 echo -n 'font=sans:size=12.5
 prompt=" "
 fields=name
@@ -201,3 +156,48 @@ NoDisplay=true
 ' > /usr/local/share/applications/foot.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/footclient.desktop
 cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/foot-server.desktop
+
+cat <<'__EOF__' > /usr/local/share/foot/foot.ini
+font=monospace:size=10
+[scrollback]
+indicator-position=none
+[cursor]
+blink=yes
+[key-bindings]
+scrollback-up-page = Page_Up
+scrollback-down-page = Page_Down
+clipboard-copy = Control+c XF86Copy
+clipboard-paste = Control+v XF86Paste
+spawn-terminal = Control+n
+search-start = Control+f
+[search-bindings]
+cancel = Escape
+commit = none
+find-next = Return
+find-prev = Shift+Return
+extend-to-next-whitespace = Shift+space
+[text-bindings]
+# make escape to act like ctrl+c
+\x03 = Escape
+[colors]
+background=222222
+foreground=EEEEEE
+regular0=403E41
+regular1=FF6188
+regular2=A9DC76
+regular3=FFD866
+regular4=FC9867
+regular5=AB9DF2
+regular6=78DCE8
+regular7=FCFCFA
+bright0=727072
+bright1=FF6188
+bright2=A9DC76
+bright3=FFD866
+bright4=FC9867
+bright5=AB9DF2
+bright6=78DCE8
+bright7=FCFCFA
+selection-background=555555
+selection-foreground=dddddd
+__EOF__
