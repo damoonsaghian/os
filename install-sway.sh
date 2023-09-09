@@ -151,6 +151,7 @@ StartupNotify=true
 ' > /usr/local/share/applications/terminal.desktop
 echo -n '[Desktop Entry]
 Name=Foot
+Type=Application
 Exec=foot
 NoDisplay=true
 ' > /usr/local/share/applications/foot.desktop
