@@ -2,11 +2,6 @@ set -e
 
 arch="$(dpkg --print-architecture)"
 
-echo -n 'APT::Install-Recommends "false";
-APT::AutoRemove::RecommendsImportant "false";
-APT::AutoRemove::SuggestsImportant "false";
-' > /etc/apt/apt.conf.d/99_norecommends
-
 echo -n 'deb http://deb.debian.org/debian stable main contrib non-free-firmware
 deb http://deb.debian.org/debian stable-updates main contrib non-free-firmware
 deb http://deb.debian.org/debian-security stable-security main contrib non-free-firmware

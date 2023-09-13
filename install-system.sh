@@ -46,6 +46,8 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.apt-update.policy
 
+echo 'APT::AutoRemove::SuggestsImportant "false";' > /etc/apt/apt.conf.d/99_norecommends
+
 # https://www.freedesktop.org/wiki/Software/systemd/inhibit/
 cat <<'__EOF__' > /usr/local/bin/system-packages
 #!/bin/sh

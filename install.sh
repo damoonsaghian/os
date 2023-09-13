@@ -122,7 +122,7 @@ else
 	esac
 fi
 
-debootstrap --variant=minbase --include="init,btrfs-progs,udev,netbase,ca-certificates,usr-is-merged" \
+debootstrap --variant=minbase --include="init,btrfs-progs,usr-is-merged,netbase" \
 	--components=main,contrib,non-free-firmware stable /mnt
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
