@@ -64,6 +64,7 @@ time {
 # , large punctuation
 # , and easily distinguishable characters
 # , while allowing each character to take up the space that it needs
+# "https://github.com/iaolo/iA-Fonts/tree/master/iA%20Writer%20Quattro"
 # "https://input.djr.com/"
 apt-get -qq install fonts-noto-core fonts-hack
 mkdir -p /etc/fonts
