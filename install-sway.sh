@@ -103,7 +103,7 @@ image-size-ratio=0
 line-height=38
 layer=overlay
 [colors]
-background=222222ff
+background=111111ff
 text=eeeeeeff
 match=eeeeeeff
 selection=4285F4ff
@@ -182,7 +182,7 @@ extend-to-next-whitespace = Shift+space
 # make escape to act like ctrl+c
 \x03 = Escape
 [colors]
-background=222222
+background=111111
 foreground=EEEEEE
 regular0=403E41
 regular1=FF6188
