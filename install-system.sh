@@ -31,55 +31,70 @@ echo -n 'polkit.addRule(function(action, subject) {
 });
 ' > /etc/polkit-1/rules.d/49-timezone.rules
 
-# let any user to run "pkexec apt-get update"
-echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
-	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
-<policyconfig>
-	<action id="org.local.pkexec.apt-update">
-		<description>let any user to run "pkexec apt-get update"</description>
-		<message>let any user to run "pkexec apt-get update"</message>
-		<defaults><allow_active>yes</allow_active></defaults>
-		<annotate key="org.freedesktop.policykit.exec.path">/usr/bin/apt-get</annotate>
-		<annotate key="org.freedesktop.policykit.exec.argv1">update</annotate>
-	</action>
-</policyconfig>
-' > /usr/share/polkit-1/actions/org.local.pkexec.apt-update.policy
-
 echo 'APT::AutoRemove::SuggestsImportant "false";' > /etc/apt/apt.conf.d/99_norecommends
 
-# https://www.freedesktop.org/wiki/Software/systemd/inhibit/
-cat <<'__EOF__' > /usr/local/bin/system-packages
-#!/bin/sh
-mode="$1" package_name="$2"
+cat <<'__EOF__' > /usr/local/bin/ospkg-deb
+#!/usr/bin/env -S pkexec /bin/bash
+mode="$1"
+meta_package=ospkg-"$PKEXEC_UID"--"$2"
+shift 2
+packages="$@"
 
-autoupdate() {
-	metered_connection() {
-		local active_net_device="$(ip route show default | head -1 | sed -n "s/.* dev \([^\ ]*\) .*/\1/p")"
-		local is_metered=false
-		case "$active_net_device" in
-			ww*) is_metered=true ;;
-		esac
-		# todo: DHCP option 43 ANDROID_METERED
-		$is_metered
-	}
-	metered_connection && exit 0
+if [ "$1" = add ]; then
 	apt-get update
-	export DEBIAN_FRONTEND=noninteractive
-	apt-get -qq -o Dpkg::Options::=--force-confnew dist-upgrade
-}
-
-case "$mode" in
-	autoupdate) autoupdate ;;
-	update) apt-get update; apt-get dist-upgrade ;;
-	install) apt-get install -- "$package_name" ;;
-	remove) apt-get purge -- "$package_name" ;;
-esac
+	# create a meta package named "$meta_package", made of "$packages"
+	# if there is a old package with the same name, find its version, and version=version+1
+	# otherwise version is 0
+	# mkdir -p /tmp/ospkg-deb
+	# apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
+elif [ "$1" == remove ]; then
+	apt-get purge -- "$meta_package"
+elif [ "$1" == update ]; then
+	apt-get update
+elif [ "$1" == upgrade ]; then
+	apt-get update
+	apt-get dist-upgrade
+fi
 
 apt-get -qq --purge autoremove
 apt-get -qq autoclean
 __EOF__
-chmod +x /usr/local/bin/system-packages
+chmod +x /usr/local/bin/ospkg-deb
+
+echo -n '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+	<action id="org.local.pkexec.ospkg-deb">
+		<description>ospkg-deb</description>
+		<message>ospkg-deb</message>
+		<defaults><allow_active>yes</allow_active></defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/bin/bash</annotate>
+		<annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/ospkg-deb</annotate>
+	</action>
+</policyconfig>
+' > /usr/share/polkit-1/actions/org.local.pkexec.ospkg-deb.policy
+
+# https://www.freedesktop.org/wiki/Software/systemd/inhibit/
+cat <<'__EOF__' > /usr/local/share/automatic-update.sh
+metered_connection() {
+	local active_net_device="$(ip route show default | head -1 | sed -n "s/.* dev \([^\ ]*\) .*/\1/p")"
+	local is_metered=false
+	case "$active_net_device" in
+		ww*) is_metered=true ;;
+	esac
+	# todo: DHCP option 43 ANDROID_METERED
+	$is_metered
+}
+metered_connection && exit 0
+
+apt-get update
+export DEBIAN_FRONTEND=noninteractive
+apt-get -qq -o Dpkg::Options::=--force-confnew dist-upgrade
+
+apt-get -qq --purge autoremove
+apt-get -qq autoclean
+__EOF__
 
 mkdir -p /usr/local/lib/systemd/system
 echo -n '[Unit]
@@ -89,7 +104,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 ExecStartPre=-/usr/lib/apt/apt-helper wait-online
-ExecStart=/usr/local/bin/system-packages autoupdate
+ExecStart=/bin/sh /usr/local/share/automatic-update.sh
 KillMode=process
 TimeoutStopSec=900
 Nice=19

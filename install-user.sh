@@ -101,7 +101,7 @@ echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="/usr/local/bin/lock"' > \
 echo; echo -n "set username: "
 read -r username
 groupadd -f netdev; groupadd -f bluetooth
-useradd --create-home --groups netdev,bluetooth --shell /bin/bash "$username" || true
+useradd --create-home --groups "$username",netdev,bluetooth --shell /bin/bash "$username" || true
 echo >> "/home/$username/.bashrc"
 cat <<'__EOF__' >> "/home/$username/.bashrc"
 export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
@@ -118,7 +118,10 @@ done
 # lock root account
 passwd --lock root
 
-# guest user:
-# read'only access to projects
-# in the same group as the first user
-# during login, creates a symlink for each project directory
+# guest user
+useradd --create-home --shell /bin/bash guest || true
+echo >> "/home/guest/.bashrc"
+cat <<'__EOF__' >> "/home/guest/.bashrc"
+export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
+echo "enter \"system\" to configure system settings"
+__EOF__

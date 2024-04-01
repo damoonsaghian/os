@@ -165,14 +165,14 @@ change_passwords() {
 }
 
 manage_packages() {
-	local mode= package_name= answer=n
+	local mode= package_name= answer=no
 	echo 'packages:'
-	mode="$(printf "update\ninstall\nremove" | fzy)"
+	mode="$(printf "upgrade\nadd\nremove" | fzy)"
 	
-	[ "$mode" = install ] && {
+	[ "$mode" = add ] && {
 		printf 'search for: '
 		read -r search_entry
-		pkexec apt-get update
+		ospkg-deb update
 		package_name="$(apt-cache search "$search_entry" | fzy | { read -r first _rest; echo "$first"; })"
 		apt-cache show "$package_name"
 		echo "install \"$package_name\"?"
@@ -181,15 +181,13 @@ manage_packages() {
 	}
 	
 	[ "$mode" = remove ] && {
-		printf 'search for: '
-		read -r search_entry
-		package_name="$(apt-cache search "$search_entry" | fzy | { read -r first _rest; echo "$first"; })"
+		package_name="$(apt-cache search "^ospkg-$(id -u)--.*" | cut -d "--" -f2 |
+			fzy | { read -r first _rest; echo "$first"; })"
 		printf "remove \"$package_name\"?"
 		answer="$(printf "no\nyes" | fzy)"
 		[ "$answer" = yes ] || exit
 	}
-	
-	sudo system-packages "$mode" "$package_name"
+	ospkg-deb "$mode" "$package_name" "$package_name"
 }
 
 if [ -z "$1" ]; then
