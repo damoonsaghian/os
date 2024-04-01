@@ -37,16 +37,32 @@ cat <<'__EOF__' > /usr/local/bin/ospkg-deb
 #!/usr/bin/env -S pkexec /bin/bash
 mode="$1"
 meta_package=ospkg-"$PKEXEC_UID"--"$2"
-shift 2
-packages="$@"
+packages="$3"
 
 if [ "$1" = add ]; then
-	apt-get update
-	# create a meta package named "$meta_package", made of "$packages"
+	# if there a package named "$meta_package" is already installed,
+	# and its dependencies (when sorted) is equal to "$packages" (when sorted),
+	# fix and exit
+	
 	# if there is a old package with the same name, find its version, and version=version+1
 	# otherwise version is 0
-	# mkdir -p /tmp/ospkg-deb
-	# apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
+	
+	# create the meta package
+	mkdir -p /tmp/ospkg-deb/"$meta_package"/debian
+	cat <<-__EOF2__ > /tmp/ospkg-deb/"$meta_package"/debian/control
+	Package: $meta_package
+	Version: $version
+	Architecture: all
+	Depends: $packages
+	Installed-Size:
+	Maintainer: Daeng Bo
+	Description: A metapackage for Daeng
+	Detailed description (optional, and notice the leading space)
+	__EOF2__
+	dpkg --build /tmp/ospkg-deb/"$meta_package" /tmp/ospkg-deb/
+	
+	apt-get update
+	apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
 elif [ "$1" == remove ]; then
 	apt-get purge -- "$meta_package"
 elif [ "$1" == update ]; then
