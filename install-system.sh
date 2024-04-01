@@ -44,12 +44,24 @@ if [ "$1" = add ]; then
 	if [ -z "$version" ]; then
 		# there is no installed package named $meta_package
 		version=0
-	elif []; then
-		# there is an installed package named $meta_package and
-		# its dependencies (when sorted) is equal to "$packages" (when sorted)
-		exit
 	else
-		version=$((version+1))
+		# there is an installed package named $meta_package
+		
+		# sort $packages
+		packages="$(echo "$packages" | tr -d '[:blank:]' | tr , "\n" | sort -u | tr "\n" ,)"
+		# trim commas at the begining and the end
+		packages="${packages%,}"; packages="${packages#,}"
+		
+		# find dependencies of $meta_package, and sort them
+		dependecies="$()"
+		dependecies="$(echo "$dependecies" | tr -d '[:blank:]' | tr , "\n" | sort -u | tr "\n" ,)"
+		dependecies="${dependecies%,}"; dependecies="${dependecies#,}"
+		
+		if [ "$packages" = "$dependencies" ]; then
+			exit
+		else
+			version=$((version+1))
+		fi
 	fi
 	
 	# create the meta package
