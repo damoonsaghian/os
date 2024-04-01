@@ -53,7 +53,7 @@ if [ "$1" = add ]; then
 		packages="${packages%,}"; packages="${packages#,}"
 		
 		# find dependencies of $meta_package, and sort them
-		dependecies="$()"
+		dependecies="$(dpkg-query -f='${Depends}' -W "$meta_package")"
 		dependecies="$(echo "$dependecies" | tr -d '[:blank:]' | tr , "\n" | sort -u | tr "\n" ,)"
 		dependecies="${dependecies%,}"; dependecies="${dependecies#,}"
 		
