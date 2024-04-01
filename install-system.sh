@@ -65,14 +65,14 @@ if [ "$1" = add ]; then
 	fi
 	
 	# create the meta package
-	mkdir -p /tmp/ospkg-deb/"$meta_package"/debian
-	cat <<-__EOF2__ > /tmp/ospkg-deb/"$meta_package"/debian/control
+	mkdir -p /tmp/ospkg-deb/"$meta_package"/DEBIAN
+	cat <<-__EOF2__ > /tmp/ospkg-deb/"$meta_package"/DEBIAN/control
 	Package: $meta_package
 	Version: $version
 	Architecture: all
 	Depends: $packages
 	__EOF2__
-	dpkg --build /tmp/ospkg-deb/"$meta_package" /tmp/ospkg-deb/
+	dpkg --build /tmp/ospkg-deb/"$meta_package" /tmp/ospkg-deb/ &>/dev/null
 	
 	apt-get update
 	apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
