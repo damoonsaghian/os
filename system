@@ -181,7 +181,7 @@ manage_packages() {
 	}
 	
 	[ "$mode" = remove ] && {
-		package_name="$(apt-cache search --names-only "^ospkg-$(id -u)--.*" | cut -d "--" -f2 |
+		package_name="$(apt-cache search --names-only "^ospkg-$(id -u)--.*" | sed s/^.*--// |
 			fzy | { read -r first _rest; echo "$first"; })"
 		printf "remove \"$package_name\"?"
 		answer="$(printf "no\nyes" | fzy)"
