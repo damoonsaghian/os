@@ -40,12 +40,17 @@ meta_package=ospkg-"$PKEXEC_UID"--"$2"
 packages="$3"
 
 if [ "$1" = add ]; then
-	# if there a package named "$meta_package" is already installed,
-	# and its dependencies (when sorted) is equal to "$packages" (when sorted),
-	# fix and exit
-	
-	# if there is a old package with the same name, find its version, and version=version+1
-	# otherwise version is 0
+	version="$(dpkg-query -f='${Version}' -W "$meta_package" 2> /dev/null)"
+	if [ -z "$version" ]; then
+		# there is no installed package named $meta_package
+		version=0
+	elif []; then
+		# there is an installed package named $meta_package and
+		# its dependencies (when sorted) is equal to "$packages" (when sorted)
+		exit
+	else
+		version=$((version+1))
+	fi
 	
 	# create the meta package
 	mkdir -p /tmp/ospkg-deb/"$meta_package"/debian
@@ -54,10 +59,6 @@ if [ "$1" = add ]; then
 	Version: $version
 	Architecture: all
 	Depends: $packages
-	Installed-Size:
-	Maintainer: Daeng Bo
-	Description: A metapackage for Daeng
-	Detailed description (optional, and notice the leading space)
 	__EOF2__
 	dpkg --build /tmp/ospkg-deb/"$meta_package" /tmp/ospkg-deb/
 	
