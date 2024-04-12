@@ -120,7 +120,8 @@ passwd --lock root
 
 # guest user
 useradd --create-home --shell /bin/bash guest || true
-echo >> "/home/guest/.bashrc"
+passwd --quiet --delete guest
+printf 'no user account? login as "guest"\n\n' >> /etc/issue
 cat <<'__EOF__' >> "/home/guest/.bashrc"
 export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
