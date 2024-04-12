@@ -27,14 +27,18 @@ implementing atomic upgrade does not worth the effort, because to have a really 
 to fix a broken system (eg due to power outage during a system upgrade), the live system can be used
 
 package management in Debian (and in fact, other distros) is a really complex endeavour
-but there is a simple and elegant method (as far as i know, not yet implemented anywhere):
+but there is a simple and elegant method (as far as i know, not yet implemented anywhere)
 there will be no central directory containing all libraries
-packages will be installed into their own directories in "/usr/packages"
-an executable shell script will be created in "/usr/bin" to run executables of the package,
-	with environment variable "LD_LIBRARY_PATH=." set
-shared data will be put inside "usr/share"
-additional system configs can be put inside "/etc" "/boot"
-package's directory will contain a "uninstall.sh" that will remove the package from the system
+after downloading and extracting all packages
+, move the binary files (executable and libraries) into "/usr/packages/package-name/" directories
+, "deps" file of each package, contains the path of needed libraries from other packages 
+	they will be hard linked into the package directory
+, "install.sh" script will be run, which will do these:
+	an executable shell script will be created in "/usr/bin" to run executables of the package,
+		with environment variable "LD_LIBRARY_PATH=." set
+	shared data will be put inside "usr/share"
+	additional system configs can be put inside "/etc" "/boot"
+	puts "uninstall.sh" in package directory, that will clear the package from the system
 
 to run a command as root:
 ; sudo command
