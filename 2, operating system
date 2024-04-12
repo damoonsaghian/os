@@ -8,7 +8,7 @@ using Debian we can easily setup a Linux based operating system
 
 boot to a Debian live system
 if Debian live is not available for an architecture, as a workaround,
-	intall Debian on a removable storage device, and use that as a live system
+	install Debian on a removable storage device, and use that as a live system
 then run this in a terminal (note that s390x and mips architectures are not supported):
 ; sudo sh install.sh
 
@@ -24,7 +24,17 @@ a terminal emulator application is installed by default
 
 implementing atomic upgrade does not worth the effort, because to have a really fail'safe system,
 	redundant backups are necessary anyway
-to fix a broken system (eg due to powerloss during a system upgrade), the live system can be used
+to fix a broken system (eg due to power outage during a system upgrade), the live system can be used
+
+package management in Debian (and in fact, other distros) is a really complex endeavour
+but there is a simple and elegant method (as far as i know, not yet implemented anywhere):
+there will be no central directory containing all libraries
+packages will be installed into their own directories in "/usr/packages"
+an executable shell script will be created in "/usr/bin" to run executables of the package,
+	with environment variable "LD_LIBRARY_PATH=." set
+shared data will be put inside "usr/share"
+additional system configs can be put inside "/etc" "/boot"
+package's directory will contain a "uninstall.sh" that will remove the package from the system
 
 to run a command as root:
 ; sudo command
