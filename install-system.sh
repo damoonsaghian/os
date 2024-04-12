@@ -77,7 +77,7 @@ if [ "$1" = add ]; then
 	apt-get update
 	apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
 elif [ "$1" == remove ]; then
-	apt-get purge -- "$meta_package"
+	SUDO_FORCE_REMOVE=yes apt-get purge -- "$meta_package"
 elif [ "$1" == update ]; then
 	apt-get update
 elif [ "$1" == upgrade ]; then
