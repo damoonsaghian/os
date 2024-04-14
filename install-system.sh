@@ -104,19 +104,6 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.ospkg-deb.policy
 
-cat <<-'__EOF__' > "/usr/local/share/user_apps.sh"
-# read url lines in "$HOME/.local/apps/url-list"
-# download it to ~/.cache/packages/url_hash/
-if [ "$protocol" = gnunet ]; then
-	ospkg add uapps-gnunet gnunet
-elif [ "$protocol" = git ]; then
-	ospkg add uapps-git git
-end
-# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
-# run install.sh in each one
-__EOF__
-# set a user service with a file monitor and a timer that runs user_apps.sh
-
 # https://www.freedesktop.org/wiki/Software/systemd/inhibit/
 cat <<'__EOF__' > /usr/local/share/automatic-update.sh
 metered_connection() {
@@ -161,3 +148,38 @@ RandomizedDelaySec=5min
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/automatic-update.timer
 systemctl enable automatic-update.timer
+
+cat <<-'__EOF__' > "/usr/local/share/user_apps.sh"
+# read url lines in "$HOME/.local/apps/url-list"
+# download it to ~/.cache/packages/url_hash/
+if [ "$protocol" = gnunet ]; then
+	ospkg add uapps-gnunet gnunet
+elif [ "$protocol" = git ]; then
+	ospkg add uapps-git git
+end
+# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
+# run install.sh in each one
+__EOF__
+
+# set a user service with a file monitor and a timer that runs user_apps.sh
+mkdir -p /etc/systemd/user
+echo -n '[Unit]
+Description=user apps
+ConditionACPower=true
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /usr/local/share/user-apps.sh
+KillMode=process
+TimeoutStopSec=900
+Nice=19
+' > /etc/systemd/user/user-apps.service
+echo -n '[Unit]
+Description=user apps
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=24h
+RandomizedDelaySec=5min
+[Install]
+WantedBy=timers.target
+' > /etc/systemd/user/user-apps.timer
+systemctl --global enable user-apps.timer
