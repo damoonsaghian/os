@@ -104,6 +104,18 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/org.local.pkexec.ospkg-deb.policy
 
+cat <<-'__EOF__' > "/usr/local/share/user_apps.sh"
+# read url lines in "$HOME/.local/apps/url-list"
+# download it to ~/.cache/packages/url_hash/
+if [ "$protocol" = gnunet ]; then
+	ospkg add uapps-gnunet gnunet
+elif [ "$protocol" = git ]; then
+	ospkg add uapps-git git
+end
+# run install.sh in each one
+__EOF__
+# set a user service with a file monitor and a timer that runs user_apps.sh
+
 # https://www.freedesktop.org/wiki/Software/systemd/inhibit/
 cat <<'__EOF__' > /usr/local/share/automatic-update.sh
 metered_connection() {

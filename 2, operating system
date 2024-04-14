@@ -26,6 +26,10 @@ implementing atomic upgrade does not worth the effort, because to have a really 
 	redundant backups are necessary anyway
 to fix a broken system (eg due to power outage during a system upgrade), the live system can be used
 
+other than Debian packages, you can install user apps
+a user app is simply a directory containing a file named "install.sh"
+to install a user app, just add its URL (gnunet/git) to "~/local/apps/url-list"
+
 to run a command as root:
 ; sudo command
 this will switch to the first available virtual terminal, shows the command at the top,
