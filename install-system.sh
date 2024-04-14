@@ -112,6 +112,7 @@ if [ "$protocol" = gnunet ]; then
 elif [ "$protocol" = git ]; then
 	ospkg add uapps-git git
 end
+# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
 # run install.sh in each one
 __EOF__
 # set a user service with a file monitor and a timer that runs user_apps.sh

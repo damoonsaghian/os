@@ -29,6 +29,9 @@ to fix a broken system (eg due to power outage during a system upgrade), the liv
 other than Debian packages, you can install user apps
 a user app is simply a directory containing a file named "install.sh"
 to install a user app, just add its URL (gnunet/git) to "~/.local/apps/url-list"
+there must be an empty line between each url
+after each URL line, a public key can be inserted too
+	it will be used to check the signature of the download
 
 to run a command as root:
 ; sudo command
