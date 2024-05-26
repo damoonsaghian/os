@@ -1,5 +1,6 @@
-apt-get -qq install dbus-user-session pkexec kbd physlock
+apt-get -qq install dbus-user-session pkexec kbd physlock whois
 # kbd is needed for its openvt and chvt
+# whois is needed for its mkpasswd
 
 cat <<'__EOF__' > /usr/local/bin/chkpasswd
 #!/bin/bash
@@ -11,7 +12,7 @@ salt="$(echo "$passwd_hashed" | grep -o '.*\$')"
 printf "$prompt "
 IFS= read -rs entered_passwd
 echo
-entered_passwd_hashed="$(PASS="$entered_passwd" SALT="$salt" perl -le 'print crypt($ENV{PASS}, $ENV{SALT})')"
+entered_passwd_hashed="$(MKPASSWD_OPTIONS="-S $salt" mkpasswd -s <<< "$entered_passwd")"
 if [ "$entered_passwd_hashed" = "$passwd_hashed" ]; then
   exit 0
 else
@@ -55,11 +56,14 @@ set -e
 chkpasswd="/usr/local/bin/chkpasswd \"$(logname)\" 'password:'"
 user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 deallocvt
-openvt --switch --console=12 -- sh -c \
+openvt --login --switch --console=12 -- sh -c \
 	"setterm --blank 1; physlock -l;
 	sleep_time=0;
-	while ! $chkpasswd; do sleep_time=\$((sleep_time+1)); sleep \$sleep_time; done &&
-	setterm --blank 0; physlock -L; chvt \"$user_vt\""
+	while ! $chkpasswd; do sleep_time=\$((sleep_time+1)); sleep \$sleep_time; done && {
+		setterm --blank 0
+		physlock -L
+		chvt \"$user_vt\"
+	}" &> /dev/null
 __EOF__
 chmod +x /usr/local/bin/lock
 
@@ -105,7 +109,7 @@ useradd --create-home --groups "$username",netdev,bluetooth --shell /bin/bash "$
 echo >> "/home/$username/.bashrc"
 cat <<'__EOF__' >> "/home/$username/.bashrc"
 export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-echo "enter \"system\" to configure system settings"
+shopt -q login_shell && { echo; echo 'enter "system" to configure system settings'; }
 __EOF__
 
 while ! passwd --quiet "$username"; do
@@ -122,7 +126,8 @@ passwd --lock root
 useradd --create-home --shell /bin/bash guest || true
 passwd --quiet --delete guest
 printf 'no user account? login as "guest"\n\n' >> /etc/issue
+echo >> "/home/guest/.bashrc"
 cat <<'__EOF__' >> "/home/guest/.bashrc"
 export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-echo "enter \"system\" to configure system settings"
+shopt -q login_shell && { echo; echo 'enter "system" to configure system settings'; }
 __EOF__
