@@ -56,14 +56,14 @@ set -e
 chkpasswd="/usr/local/bin/chkpasswd \"$(logname)\" 'password:'"
 user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 deallocvt
-openvt --login --switch --console=12 -- sh -c \
+openvt --switch --console=12 -- sh -c \
 	"setterm --blank 1; physlock -l;
 	sleep_time=0;
 	while ! $chkpasswd; do sleep_time=\$((sleep_time+1)); sleep \$sleep_time; done && {
 		setterm --blank 0
 		physlock -L
 		chvt \"$user_vt\"
-	}" &> /dev/null
+	}"
 __EOF__
 chmod +x /usr/local/bin/lock
 
